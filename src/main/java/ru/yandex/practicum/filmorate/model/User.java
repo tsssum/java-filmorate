@@ -18,6 +18,7 @@ public class User {
     @NotBlank
     String login;
     String name;
-    @NotNull @PastOrPresent
+    @NotNull
+    @PastOrPresent
     LocalDate birthday;
 }
