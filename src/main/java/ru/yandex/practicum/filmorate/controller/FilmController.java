@@ -58,7 +58,7 @@ public class FilmController {
             if (!newFilm.getDescription().isBlank()) {
                 oldFilm.setDescription(newFilm.getDescription());
             }
-            if(newFilm.getReleaseDate() != null) {
+            if (newFilm.getReleaseDate() != null) {
                 oldFilm.setReleaseDate(newFilm.getReleaseDate());
             }
             if (newFilm.getDuration() > 0) {
