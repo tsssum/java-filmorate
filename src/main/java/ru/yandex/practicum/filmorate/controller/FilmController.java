@@ -36,8 +36,8 @@ public class FilmController {
             throw new DateException("Дата релиза не может быть раньше " + minDate);
         }
 
-        if (film.getDuration().isNegative()) {
-            throw new NegativeDurationException("Продолжительность фильма не может быть отрицательной");
+        if (film.getDuration() <= 0) {
+            throw new NegativeDurationException("Продолжительность фильма должна быть положительной");
         }
 
         film.setId(getNextId());
@@ -57,6 +57,12 @@ public class FilmController {
             }
             if (!newFilm.getDescription().isBlank()) {
                 oldFilm.setDescription(newFilm.getDescription());
+            }
+            if(newFilm.getReleaseDate() != null) {
+                oldFilm.setReleaseDate(newFilm.getReleaseDate());
+            }
+            if (newFilm.getDuration() > 0) {
+                oldFilm.setDuration(newFilm.getDuration());
             }
             return oldFilm;
         }

@@ -32,7 +32,7 @@ class FilmorateApplicationTests {
         film.setName("Test Film");
         film.setDescription("Valid description");
         film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(Duration.ofMinutes(120));
+        film.setDuration(120);
 
         Film created = filmController.create(film);
         assertNotNull(created.getId());
@@ -46,7 +46,7 @@ class FilmorateApplicationTests {
         film.setName("");
         film.setDescription("Desc");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         assertThrows(EmptyStringException.class, () -> filmController.create(film));
     }
@@ -57,7 +57,7 @@ class FilmorateApplicationTests {
         film.setName("Test");
         film.setDescription("a".repeat(201));
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         assertThrows(OverLengthException.class, () -> filmController.create(film));
     }
@@ -68,7 +68,7 @@ class FilmorateApplicationTests {
         film.setName("Test");
         film.setDescription("a".repeat(200));
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         assertDoesNotThrow(() -> filmController.create(film));
     }
@@ -79,7 +79,7 @@ class FilmorateApplicationTests {
         film.setName("Test");
         film.setDescription("Desc");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(-10));
+        film.setDuration(-10);
 
         assertThrows(NegativeDurationException.class, () -> filmController.create(film));
     }
@@ -90,7 +90,7 @@ class FilmorateApplicationTests {
         film.setName("Test");
         film.setDescription("Desc");
         film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         assertThrows(DateException.class, () -> filmController.create(film));
     }
@@ -101,7 +101,7 @@ class FilmorateApplicationTests {
         film.setName("Test");
         film.setDescription("Desc");
         film.setReleaseDate(LocalDate.of(1895, 12, 28));
-        film.setDuration(Duration.ofMinutes(90));
+        film.setDuration(90);
 
         assertDoesNotThrow(() -> filmController.create(film));
     }
@@ -112,7 +112,7 @@ class FilmorateApplicationTests {
         film.setName("Old");
         film.setDescription("Old desc");
         film.setReleaseDate(LocalDate.now());
-        film.setDuration(Duration.ofMinutes(100));
+        film.setDuration(100);
         Film created = filmController.create(film);
 
         Film updateData = new Film();
