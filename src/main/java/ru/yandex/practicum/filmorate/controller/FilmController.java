@@ -15,8 +15,8 @@ import java.util.Map;
 @RequestMapping("/films")
 public class FilmController {
     private final Map<Long, Film> films = new HashMap<Long, Film>();
-    final Integer MAX_DESCRIPTION_LENGTH = 200;
-    final LocalDate MIN_DATE = LocalDate.of(1895, 12, 28);
+    final Integer maxDescriptionLength = 200;
+    final LocalDate minDate = LocalDate.of(1895, 12, 28);
 
     @GetMapping
     public Collection<Film> findAll() {
@@ -28,12 +28,12 @@ public class FilmController {
         if (film.getName().isBlank()) {
             throw new EmptyStringException("Название не может быть пустым");
         }
-        if (film.getDescription().length() > MAX_DESCRIPTION_LENGTH) {
-            throw new OverLengthException("Название не может быть больше " + MAX_DESCRIPTION_LENGTH + " символов");
+        if (film.getDescription().length() > maxDescriptionLength) {
+            throw new OverLengthException("Название не может быть больше " + maxDescriptionLength + " символов");
         }
 
-        if (film.getReleaseDate().isBefore(MIN_DATE)) {
-            throw new DateException("Дата релиза не может быть раньше " + MIN_DATE);
+        if (film.getReleaseDate().isBefore(minDate)) {
+            throw new DateException("Дата релиза не может быть раньше " + minDate);
         }
 
         if (film.getDuration().isNegative()) {
