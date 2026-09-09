@@ -1,8 +1,11 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.*;
+import ru.yandex.practicum.filmorate.exception.DateException;
+import ru.yandex.practicum.filmorate.exception.EmptyStringException;
+import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
@@ -20,24 +23,14 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> findAll() {
+        log.trace("Вызвано получение всех фильмов");
         return films.values();
     }
 
     @PostMapping
-    public Film create(@RequestBody Film film) {
-        if (film.getName().isBlank()) {
-            throw new EmptyStringException("Название не может быть пустым");
-        }
-        if (film.getDescription().length() > maxDescriptionLength) {
-            throw new OverLengthException("Название не может быть больше " + maxDescriptionLength + " символов");
-        }
-
+    public Film create(@Valid @RequestBody Film film) {
         if (film.getReleaseDate().isBefore(minDate)) {
             throw new DateException("Дата релиза не может быть раньше " + minDate);
-        }
-
-        if (film.getDuration() <= 0) {
-            throw new NegativeDurationException("Продолжительность фильма должна быть положительной");
         }
 
         film.setId(getNextId());
@@ -52,13 +45,14 @@ public class FilmController {
         }
         if (films.containsKey(newFilm.getId())) {
             Film oldFilm = films.get(newFilm.getId());
-            if (!newFilm.getName().isBlank()) {
+            if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
                 oldFilm.setName(newFilm.getName());
             }
-            if (!newFilm.getDescription().isBlank()) {
+            if (newFilm.getName() != null && !newFilm.getDescription().isBlank()
+                    && newFilm.getDescription().length() <= maxDescriptionLength) {
                 oldFilm.setDescription(newFilm.getDescription());
             }
-            if (newFilm.getReleaseDate() != null) {
+            if (newFilm.getReleaseDate() != null && newFilm.getReleaseDate().isAfter(minDate)) {
                 oldFilm.setReleaseDate(newFilm.getReleaseDate());
             }
             if (newFilm.getDuration() > 0) {

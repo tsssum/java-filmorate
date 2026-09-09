@@ -10,11 +10,9 @@ import java.time.LocalDate;
 @lombok.Data
 public class User {
     Long id;
-    @NotNull
     @NotBlank
     @Email
     String email;
-    @NotNull
     @NotBlank
     String login;
     String name;

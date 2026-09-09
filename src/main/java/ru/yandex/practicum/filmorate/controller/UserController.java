@@ -19,6 +19,7 @@ public class UserController {
 
     @GetMapping
     public Collection<User> findAll() {
+        log.trace("Вызвано получение всех фильмов");
         return users.values();
     }
 
@@ -34,7 +35,7 @@ public class UserController {
     }
 
     @PutMapping
-    public User update(@Valid @RequestBody User newUser) {
+    public User update(@RequestBody User newUser) {
         if (newUser.getId() == null) {
             throw new EmptyStringException("Id должен быть указан");
         }
