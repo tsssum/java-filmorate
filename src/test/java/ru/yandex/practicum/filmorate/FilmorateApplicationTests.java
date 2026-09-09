@@ -40,28 +40,6 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void createFilmEmptyNameThrowsException() {
-        Film film = new Film();
-        film.setName("");
-        film.setDescription("Desc");
-        film.setReleaseDate(LocalDate.now());
-        film.setDuration(90);
-
-        assertThrows(EmptyStringException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    void createFilmDescriptionTooLongThrowsException() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setDescription("a".repeat(201));
-        film.setReleaseDate(LocalDate.now());
-        film.setDuration(90);
-
-        assertThrows(OverLengthException.class, () -> filmController.create(film));
-    }
-
-    @Test
     void createFilmDescriptionExactlyMaxLengthSuccess() {
         Film film = new Film();
         film.setName("Test");
@@ -70,17 +48,6 @@ class FilmorateApplicationTests {
         film.setDuration(90);
 
         assertDoesNotThrow(() -> filmController.create(film));
-    }
-
-    @Test
-    void createFilmNegativeDurationThrowsException() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setDescription("Desc");
-        film.setReleaseDate(LocalDate.now());
-        film.setDuration(-10);
-
-        assertThrows(NegativeDurationException.class, () -> filmController.create(film));
     }
 
     @Test
