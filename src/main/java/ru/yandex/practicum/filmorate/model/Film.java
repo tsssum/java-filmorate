@@ -1,9 +1,9 @@
 package ru.yandex.practicum.filmorate.model;
 
-import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.Size;
 
 import java.time.LocalDate;
 
@@ -13,7 +13,7 @@ public class Film {
     @NotBlank
     String name;
     @NotBlank
-    @Max(200)
+    @Size(max = 200)
     String description;
     @NotNull
     LocalDate releaseDate;
