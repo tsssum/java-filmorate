@@ -48,7 +48,7 @@ public class FilmController {
             if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
                 oldFilm.setName(newFilm.getName());
             }
-            if (newFilm.getName() != null && !newFilm.getDescription().isBlank()
+            if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()
                     && newFilm.getDescription().length() <= maxDescriptionLength) {
                 oldFilm.setDescription(newFilm.getDescription());
             }

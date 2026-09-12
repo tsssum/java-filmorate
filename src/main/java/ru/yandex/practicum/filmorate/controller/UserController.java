@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.exception.EmptyStringException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
+import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.Map;
@@ -41,16 +42,20 @@ public class UserController {
         }
         if (users.containsKey(newUser.getId())) {
             User oldUser = users.get(newUser.getId());
-            if (!newUser.getName().equals(oldUser.getName())) {
+            if (newUser.getName() != null && !newUser.getName().isBlank()
+                    && !newUser.getName().equals(oldUser.getName())) {
                 oldUser.setName(newUser.getName());
             }
-            if (!newUser.getLogin().equals(oldUser.getLogin())) {
+            if (newUser.getLogin() != null && !newUser.getLogin().isBlank()
+                    && !newUser.getLogin().equals(oldUser.getLogin())) {
                 oldUser.setLogin(newUser.getLogin());
             }
-            if (!newUser.getEmail().equals(oldUser.getEmail())) {
+            if (newUser.getEmail() != null && !newUser.getEmail().isBlank()
+                    && !newUser.getEmail().equals(oldUser.getEmail())) {
                 oldUser.setEmail(newUser.getEmail());
             }
-            if (!newUser.getBirthday().equals(oldUser.getBirthday())) {
+            if (newUser.getBirthday() != null && newUser.getBirthday().isBefore(LocalDate.now())
+                    && !newUser.getBirthday().equals(oldUser.getBirthday())) {
                 oldUser.setBirthday(newUser.getBirthday());
             }
             return oldUser;
