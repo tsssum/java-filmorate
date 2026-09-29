@@ -8,7 +8,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.service.FilmService;
 
 import java.util.Collection;
-import java.util.Set;
+import java.util.List;
 
 @Slf4j
 @RestController
@@ -58,7 +58,7 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public Set<Film> getPopular(@RequestParam(defaultValue = "10") int popularityValue) {
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") int popularityValue) {
         return filmService.getPopular(popularityValue);
     }
 }

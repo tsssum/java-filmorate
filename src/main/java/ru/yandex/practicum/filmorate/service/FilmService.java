@@ -10,6 +10,7 @@ import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -61,11 +62,11 @@ public class FilmService {
         film.setLikes(likes);
     }
 
-    public Set<Film> getPopular(int count) {
+    public List<Film> getPopular(int count) {
         return filmStorage.findAll().stream()
                 .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed()
                         .thenComparing(Film::getId))
                 .limit(count)
-                .collect(Collectors.toSet());
+                .collect(Collectors.toList());
     }
 }
