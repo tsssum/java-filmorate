@@ -61,10 +61,11 @@ public class FilmService {
         film.setLikes(likes);
     }
 
-    public Set<Film> getPopular(int popularityValue) {
+    public Set<Film> getPopular(int count) {
         return filmStorage.findAll().stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed())
-                .limit(popularityValue)
+                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed()
+                        .thenComparing(Film::getId))
+                .limit(count)
                 .collect(Collectors.toSet());
     }
 }
