@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class OverLengthException extends RuntimeException {
+import jakarta.validation.ValidationException;
+
+public class OverLengthException extends ValidationException {
     public OverLengthException(String message) {
         super(message);
     }

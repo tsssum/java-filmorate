@@ -6,6 +6,7 @@ import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.PastOrPresent;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @lombok.Data
 public class User {
@@ -19,4 +20,5 @@ public class User {
     @NotNull
     @PastOrPresent
     LocalDate birthday;
+    Set<User> friends;
 }
