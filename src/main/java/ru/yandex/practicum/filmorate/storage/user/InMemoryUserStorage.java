@@ -8,6 +8,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Component
@@ -16,12 +17,19 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Collection<User> findAll() {
+        if (users.isEmpty()) {
+            throw new NotFoundException("No users found");
+        }
         return users.values();
     }
 
     @Override
     public User findById(Long id) {
-        return users.get(id);
+        if (users.containsKey(id)) {
+            return users.get(id);
+        } else {
+            throw new NotFoundException("User not found");
+        }
     }
 
     @Override
@@ -29,7 +37,9 @@ public class InMemoryUserStorage implements UserStorage {
         if (user.getName() == null || user.getName().isBlank()) {
             user.setName(user.getLogin());
         }
-
+        if (user.getFriends() == null) {
+            user.setFriends(new HashSet<>());
+        }
         user.setId(getNextId());
         users.put(user.getId(), user);
         return user;

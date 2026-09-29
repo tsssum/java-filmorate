@@ -9,6 +9,7 @@ import ru.yandex.practicum.filmorate.model.Film;
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Map;
 
 @Component
@@ -19,12 +20,19 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findAll() {
+        if (films.isEmpty()) {
+            throw new NotFoundException("No films found");
+        }
         return films.values();
     }
 
     @Override
     public Film findById(Long id) {
-        return films.get(id);
+        if (films.containsKey(id)) {
+            return films.get(id);
+        } else {
+            throw new NotFoundException("Film not found");
+        }
     }
 
     @Override
@@ -32,7 +40,9 @@ public class InMemoryFilmStorage implements FilmStorage {
         if (film.getReleaseDate().isBefore(minDate)) {
             throw new DateException("Дата релиза не может быть раньше " + minDate);
         }
-
+        if (film.getLikes() == null) {
+            film.setLikes(new HashSet<>());
+        }
         film.setId(getNextId());
         films.put(film.getId(), film);
         return film;
