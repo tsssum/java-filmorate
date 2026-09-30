@@ -74,8 +74,14 @@ public class UserService {
                 user.get().getFriends().add(friend.get());
                 friend.get().getFriends().add(user.get());
             }
-
             log.debug("Added user {} to friends {}", user, friend);
+
+            if (user.isEmpty()) {
+                throw new NotFoundException("User with id = " + userId + " not found");
+            }
+            if (friend.isEmpty()) {
+                throw new NotFoundException("User with id = " + userId + " not found");
+            }
         }
     }
 
@@ -87,8 +93,14 @@ public class UserService {
                 user.get().getFriends().remove(friend.get());
                 friend.get().getFriends().remove(user.get());
             }
-
             log.debug("Removed user {} from friends {}", user, friend);
+
+            if (user.isEmpty()) {
+                throw new NotFoundException("User with id = " + userId + " not found");
+            }
+            if (friend.isEmpty()) {
+                throw new NotFoundException("User with id = " + userId + " not found");
+            }
         }
     }
 

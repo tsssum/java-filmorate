@@ -77,6 +77,10 @@ public class FilmService {
             likes.add(user.get().getId());
             film.get().setLikes(likes);
         }
+        if (film.isEmpty())
+            throw new NotFoundException("Film with id " + filmId + " not found");
+        if (user.isEmpty())
+            throw new NotFoundException("User with id " + userId + " not found");
     }
 
     public void deleteLike(Long filmId, Long userId) {
@@ -87,6 +91,10 @@ public class FilmService {
             likes.remove(user.get().getId());
             film.get().setLikes(likes);
         }
+        if (film.isEmpty())
+            throw new NotFoundException("Film with id " + filmId + " not found");
+        if (user.isEmpty())
+            throw new NotFoundException("User with id " + userId + " not found");
     }
 
     public List<Film> getPopular(int count) {
