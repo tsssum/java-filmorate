@@ -17,6 +17,7 @@ import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
 import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
+import java.util.Optional;
 import java.util.Set;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -47,10 +48,10 @@ class FilmorateApplicationTests {
         film.setDuration(120);
         film.setLikes(Set.of());
 
-        Film created = filmController.create(film);
-        assertNotNull(created.getId());
+        Optional<Film> created = filmController.create(film);
+        assertNotNull(created.get().getId());
         assertEquals(1, filmController.findAll().size());
-        assertEquals("Test Film", created.getName());
+        assertEquals("Test Film", created.get().getName());
     }
 
     @Test
@@ -93,18 +94,18 @@ class FilmorateApplicationTests {
         film.setDescription("Old desc");
         film.setReleaseDate(LocalDate.now());
         film.setDuration(100);
-        Film created = filmController.create(film);
+        Optional<Film> created = filmController.create(film);
 
         Film updateData = new Film();
-        updateData.setId(created.getId());
+        updateData.setId(created.get().getId());
         updateData.setName("New Name");
         updateData.setDescription("New desc");
 
-        Film updated = filmController.update(updateData);
-        assertEquals("New Name", updated.getName());
-        assertEquals("New desc", updated.getDescription());
-        assertEquals(created.getReleaseDate(), updated.getReleaseDate());
-        assertEquals(created.getDuration(), updated.getDuration());
+        Optional<Film> updated = filmController.update(updateData);
+        assertEquals("New Name", updated.get().getName());
+        assertEquals("New desc", updated.get().getDescription());
+        assertEquals(created.get().getReleaseDate(), updated.get().getReleaseDate());
+        assertEquals(created.get().getDuration(), updated.get().getDuration());
     }
 
     @Test
@@ -134,10 +135,10 @@ class FilmorateApplicationTests {
         user.setName("Test User");
         user.setBirthday(LocalDate.of(2000, 1, 1));
 
-        User created = userController.create(user);
-        assertNotNull(created.getId());
+        Optional<User> created = userController.create(user);
+        assertNotNull(created.get().getId());
         assertEquals(1, userController.findAll().size());
-        assertEquals("testLogin", created.getLogin());
+        assertEquals("testLogin", created.get().getLogin());
     }
 
     @Test
@@ -148,8 +149,8 @@ class FilmorateApplicationTests {
         user.setName("");
         user.setBirthday(LocalDate.now());
 
-        User created = userController.create(user);
-        assertEquals("login123", created.getName());
+        Optional<User> created = userController.create(user);
+        assertEquals("login123", created.get().getName());
     }
 
     @Test
@@ -160,8 +161,8 @@ class FilmorateApplicationTests {
         user.setName(null);
         user.setBirthday(LocalDate.now());
 
-        User created = userController.create(user);
-        assertEquals("login123", created.getName());
+        Optional<User> created = userController.create(user);
+        assertEquals("login123", created.get().getName());
     }
 
     @Test
@@ -182,20 +183,20 @@ class FilmorateApplicationTests {
         user.setLogin("oldLogin");
         user.setName("Old Name");
         user.setBirthday(LocalDate.of(1990, 1, 1));
-        User created = userController.create(user);
+        Optional<User> created = userController.create(user);
 
         User updateData = new User();
-        updateData.setId(created.getId());
+        updateData.setId(created.get().getId());
         updateData.setEmail("new@mail.ru");
         updateData.setLogin("newLogin");
         updateData.setName("New Name");
         updateData.setBirthday(LocalDate.of(2000, 1, 1));
 
-        User updated = userController.update(updateData);
-        assertEquals("new@mail.ru", updated.getEmail());
-        assertEquals("newLogin", updated.getLogin());
-        assertEquals("New Name", updated.getName());
-        assertEquals(LocalDate.of(2000, 1, 1), updated.getBirthday());
+        Optional<User> updated = userController.update(updateData);
+        assertEquals("new@mail.ru", updated.get().getEmail());
+        assertEquals("newLogin", updated.get().getLogin());
+        assertEquals("New Name", updated.get().getName());
+        assertEquals(LocalDate.of(2000, 1, 1), updated.get().getBirthday());
     }
 
     @Test

@@ -1,16 +1,13 @@
 package ru.yandex.practicum.filmorate.storage.file;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.DateException;
-import ru.yandex.practicum.filmorate.exception.EmptyStringException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class InMemoryFilmStorage implements FilmStorage {
@@ -20,64 +17,43 @@ public class InMemoryFilmStorage implements FilmStorage {
 
     @Override
     public Collection<Film> findAll() {
-        if (films.isEmpty()) {
-            throw new NotFoundException("No films found");
-        }
         return films.values();
     }
 
     @Override
-    public Film findById(Long id) {
-        if (films.containsKey(id)) {
-            return films.get(id);
-        } else {
-            throw new NotFoundException("Film not found");
-        }
+    public Optional<Film> findById(Long id) {
+        return Optional.ofNullable(films.get(id));
     }
 
     @Override
-    public Film create(Film film) {
-        if (film.getReleaseDate().isBefore(minDate)) {
-            throw new DateException("Дата релиза не может быть раньше " + minDate);
-        }
-        if (film.getLikes() == null) {
-            film.setLikes(new HashSet<>());
-        }
+    public Optional<Film> create(Film film) {
         film.setId(getNextId());
         films.put(film.getId(), film);
-        return film;
+        return Optional.of(film);
     }
 
     @Override
-    public Film update(Film newFilm) {
-        if (newFilm.getId() == null) {
-            throw new EmptyStringException("Id должен быть указан");
+    public Optional<Film> update(Film newFilm) {
+        Film oldFilm = films.get(newFilm.getId());
+        if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
+            oldFilm.setName(newFilm.getName());
         }
-        if (films.containsKey(newFilm.getId())) {
-            Film oldFilm = films.get(newFilm.getId());
-            if (newFilm.getName() != null && !newFilm.getName().isBlank()) {
-                oldFilm.setName(newFilm.getName());
-            }
-            if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()
-                    && newFilm.getDescription().length() <= maxDescriptionLength) {
-                oldFilm.setDescription(newFilm.getDescription());
-            }
-            if (newFilm.getReleaseDate() != null && newFilm.getReleaseDate().isAfter(minDate)) {
-                oldFilm.setReleaseDate(newFilm.getReleaseDate());
-            }
-            if (newFilm.getDuration() > 0) {
-                oldFilm.setDuration(newFilm.getDuration());
-            }
-            return oldFilm;
+        if (newFilm.getDescription() != null && !newFilm.getDescription().isBlank()
+                && newFilm.getDescription().length() <= maxDescriptionLength) {
+            oldFilm.setDescription(newFilm.getDescription());
         }
-        throw new NotFoundException("Фильм с id = " + newFilm.getId() + " не найден");
+        if (newFilm.getReleaseDate() != null && newFilm.getReleaseDate().isAfter(minDate)) {
+            oldFilm.setReleaseDate(newFilm.getReleaseDate());
+        }
+        if (newFilm.getDuration() > 0) {
+            oldFilm.setDuration(newFilm.getDuration());
+        }
+        return Optional.ofNullable(oldFilm);
     }
 
     @Override
     public void delete(Film film) {
-        if (films.containsKey(film.getId())) {
-            films.remove(film.getId());
-        }
+        films.remove(film.getId());
     }
 
     private long getNextId() {

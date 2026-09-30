@@ -1,15 +1,13 @@
 package ru.yandex.practicum.filmorate.storage.user;
 
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.exception.EmptyStringException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.Collection;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.Map;
+import java.util.Optional;
 
 @Component
 public class InMemoryUserStorage implements UserStorage {
@@ -17,67 +15,46 @@ public class InMemoryUserStorage implements UserStorage {
 
     @Override
     public Collection<User> findAll() {
-        if (users.isEmpty()) {
-            throw new NotFoundException("No users found");
-        }
         return users.values();
     }
 
     @Override
-    public User findById(Long id) {
-        if (users.containsKey(id)) {
-            return users.get(id);
-        } else {
-            throw new NotFoundException("User not found");
-        }
+    public Optional<User> findById(Long id) {
+        return Optional.ofNullable(users.get(id));
     }
 
     @Override
-    public User create(User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-        if (user.getFriends() == null) {
-            user.setFriends(new HashSet<>());
-        }
+    public Optional<User> create(User user) {
         user.setId(getNextId());
         users.put(user.getId(), user);
-        return user;
+        return Optional.of(user);
     }
 
     @Override
-    public User update(User newUser) {
-        if (newUser.getId() == null) {
-            throw new EmptyStringException("Id должен быть указан");
+    public Optional<User> update(User newUser) {
+        User oldUser = users.get(newUser.getId());
+        if (newUser.getName() != null && !newUser.getName().isBlank()
+                && !newUser.getName().equals(oldUser.getName())) {
+            oldUser.setName(newUser.getName());
         }
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
-            if (newUser.getName() != null && !newUser.getName().isBlank()
-                    && !newUser.getName().equals(oldUser.getName())) {
-                oldUser.setName(newUser.getName());
-            }
-            if (newUser.getLogin() != null && !newUser.getLogin().isBlank()
-                    && !newUser.getLogin().equals(oldUser.getLogin())) {
-                oldUser.setLogin(newUser.getLogin());
-            }
-            if (newUser.getEmail() != null && !newUser.getEmail().isBlank()
-                    && !newUser.getEmail().equals(oldUser.getEmail())) {
-                oldUser.setEmail(newUser.getEmail());
-            }
-            if (newUser.getBirthday() != null && newUser.getBirthday().isBefore(LocalDate.now())
-                    && !newUser.getBirthday().equals(oldUser.getBirthday())) {
-                oldUser.setBirthday(newUser.getBirthday());
-            }
-            return oldUser;
+        if (newUser.getLogin() != null && !newUser.getLogin().isBlank()
+                && !newUser.getLogin().equals(oldUser.getLogin())) {
+            oldUser.setLogin(newUser.getLogin());
         }
-        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+        if (newUser.getEmail() != null && !newUser.getEmail().isBlank()
+                && !newUser.getEmail().equals(oldUser.getEmail())) {
+            oldUser.setEmail(newUser.getEmail());
+        }
+        if (newUser.getBirthday() != null && newUser.getBirthday().isBefore(LocalDate.now())
+                && !newUser.getBirthday().equals(oldUser.getBirthday())) {
+            oldUser.setBirthday(newUser.getBirthday());
+        }
+        return Optional.ofNullable(oldUser);
     }
 
     @Override
     public void delete(User user) {
-        if (users.containsKey(user.getId())) {
-            users.remove(user.getId());
-        }
+        users.remove(user.getId());
     }
 
     private long getNextId() {
