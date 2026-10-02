@@ -4,10 +4,13 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.Size;
+import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
+import java.util.Set;
 
 @lombok.Data
+@EqualsAndHashCode(exclude = "likes")
 public class Film {
     Long id;
     @NotBlank
@@ -16,6 +19,9 @@ public class Film {
     String description;
     @NotNull
     LocalDate releaseDate;
+    String genre;
+    MPA mpa;
     @Positive
     int duration;
+    Set<Long> likes;
 }

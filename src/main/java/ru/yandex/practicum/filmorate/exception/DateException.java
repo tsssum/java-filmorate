@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class DateException extends RuntimeException {
+import jakarta.validation.ValidationException;
+
+public class DateException extends ValidationException {
     public DateException(String message) {
         super(message);
     }

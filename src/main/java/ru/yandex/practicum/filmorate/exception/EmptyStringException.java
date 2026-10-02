@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.exception;
 
-public class EmptyStringException extends RuntimeException {
+import jakarta.validation.ValidationException;
+
+public class EmptyStringException extends ValidationException {
     public EmptyStringException(String message) {
         super(message);
     }

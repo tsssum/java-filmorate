@@ -2,74 +2,70 @@ package ru.yandex.practicum.filmorate.controller;
 
 import jakarta.validation.Valid;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
-import ru.yandex.practicum.filmorate.exception.EmptyStringException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.UserService;
 
-import java.time.LocalDate;
 import java.util.Collection;
-import java.util.HashMap;
-import java.util.Map;
+import java.util.Optional;
+import java.util.Set;
 
 @Slf4j
 @RestController
 @RequestMapping("/users")
 public class UserController {
-    private final Map<Long, User> users = new HashMap<Long, User>();
+    private final UserService userService;
+
+    @Autowired
+    public UserController(UserService userService) {
+        this.userService = userService;
+    }
 
     @GetMapping
     public Collection<User> findAll() {
         log.trace("Вызвано получение всех фильмов");
-        return users.values();
+        return userService.findAll();
+    }
+
+    @GetMapping("/{id}")
+    public Optional<User> findById(@PathVariable Long id) {
+        return userService.findById(id);
     }
 
     @PostMapping
-    public User create(@Valid @RequestBody User user) {
-        if (user.getName() == null || user.getName().isBlank()) {
-            user.setName(user.getLogin());
-        }
-
-        user.setId(getNextId());
-        users.put(user.getId(), user);
-        return user;
+    public Optional<User> create(@Valid @RequestBody User user) {
+        return userService.create(user);
     }
 
     @PutMapping
-    public User update(@RequestBody User newUser) {
-        if (newUser.getId() == null) {
-            throw new EmptyStringException("Id должен быть указан");
-        }
-        if (users.containsKey(newUser.getId())) {
-            User oldUser = users.get(newUser.getId());
-            if (newUser.getName() != null && !newUser.getName().isBlank()
-                    && !newUser.getName().equals(oldUser.getName())) {
-                oldUser.setName(newUser.getName());
-            }
-            if (newUser.getLogin() != null && !newUser.getLogin().isBlank()
-                    && !newUser.getLogin().equals(oldUser.getLogin())) {
-                oldUser.setLogin(newUser.getLogin());
-            }
-            if (newUser.getEmail() != null && !newUser.getEmail().isBlank()
-                    && !newUser.getEmail().equals(oldUser.getEmail())) {
-                oldUser.setEmail(newUser.getEmail());
-            }
-            if (newUser.getBirthday() != null && newUser.getBirthday().isBefore(LocalDate.now())
-                    && !newUser.getBirthday().equals(oldUser.getBirthday())) {
-                oldUser.setBirthday(newUser.getBirthday());
-            }
-            return oldUser;
-        }
-        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
+    public Optional<User> update(@RequestBody User newUser) {
+        return userService.update(newUser);
     }
 
-    private long getNextId() {
-        long currentMaxId = users.keySet()
-                .stream()
-                .mapToLong(id -> id)
-                .max()
-                .orElse(0);
-        return ++currentMaxId;
+    @DeleteMapping
+    public void delete(@RequestBody User newUser) {
+        userService.delete(newUser);
     }
 
+    @PutMapping("/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.addFriends(id, friendId);
+    }
+
+    @DeleteMapping("/{id}/friends/{friendId}")
+    public void deleteFriend(@PathVariable Long id, @PathVariable Long friendId) {
+        userService.deleteFriend(id, friendId);
+    }
+
+    @GetMapping("/{id}/friends")
+    public Collection<User> findFriends(@PathVariable Long id) {
+        return userService.findFriends(id);
+    }
+
+    @GetMapping("/{id}/friends/common/{otherId}")
+    public Set<User> getCommonFriends(@PathVariable Long id,
+                                      @PathVariable Long otherId) {
+        return userService.getCommonFriends(id, otherId);
+    }
 }
