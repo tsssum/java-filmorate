@@ -23,6 +23,7 @@ public class User {
     @NotNull
     @PastOrPresent
     LocalDate birthday;
+    Confirmation friendshipStatus;
     @JsonIgnore
     Set<User> friends;
 }

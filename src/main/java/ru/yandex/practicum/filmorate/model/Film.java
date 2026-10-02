@@ -19,6 +19,8 @@ public class Film {
     String description;
     @NotNull
     LocalDate releaseDate;
+    String genre;
+    MPA mpa;
     @Positive
     int duration;
     Set<Long> likes;
