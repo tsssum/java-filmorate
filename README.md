@@ -32,6 +32,6 @@ WHERE id = 1;
 ```
 4. Добавление лайка
 ```
-INSERT INTO user_film_likes (user_id)
+INSERT INTO user_film_likes (user_id, film_id)
 VALUES (1);
 ```
