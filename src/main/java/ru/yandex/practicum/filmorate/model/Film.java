@@ -19,7 +19,7 @@ public class Film {
     String description;
     @NotNull
     LocalDate releaseDate;
-    String genre;
+    GENRE genre;
     MPA mpa;
     @Positive
     int duration;
