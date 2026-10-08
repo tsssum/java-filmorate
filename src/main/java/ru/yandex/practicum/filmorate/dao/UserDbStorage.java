@@ -18,7 +18,7 @@ import java.util.Optional;
 public class UserDbStorage implements UserRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private static final RowMapper<User> USER_ROW_MAPPER = (rs, rowNum) -> new User(
+    private static final RowMapper<User> userRowMapper = (rs, rowNum) -> new User(
             rs.getLong("USER_ID"),
             rs.getString("EMAIL"),
             rs.getString("LOGIN"),
@@ -29,13 +29,13 @@ public class UserDbStorage implements UserRepository {
     @Override
     public Optional<User> findById(long id) {
         String sql = "select * from USERS where USER_ID = :id";
-        return jdbcTemplate.query(sql, Map.of("id", id), USER_ROW_MAPPER).stream().findFirst();
+        return jdbcTemplate.query(sql, Map.of("id", id), userRowMapper).stream().findFirst();
     }
 
     @Override
     public Collection<User> findAll() {
         String sql = "select * from USERS";
-        return jdbcTemplate.query(sql, USER_ROW_MAPPER);
+        return jdbcTemplate.query(sql, userRowMapper);
     }
 
     @Override

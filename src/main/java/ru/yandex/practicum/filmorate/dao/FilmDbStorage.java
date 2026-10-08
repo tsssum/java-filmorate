@@ -20,7 +20,7 @@ import java.util.Optional;
 public class FilmDbStorage implements FilmRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
-    private final RowMapper<Film> FILM_ROW_MAPPER = (rs, rowNum) -> new Film(
+    private final RowMapper<Film> filmRowMapper = (rs, rowNum) -> new Film(
             rs.getLong("FILM_ID"),
             rs.getString("TITLE"),
             rs.getString("DESCRIPTION"),
@@ -33,13 +33,13 @@ public class FilmDbStorage implements FilmRepository {
     @Override
     public Optional<Film> findById(long id) {
         String sql = "select * from FILMS where FILM_ID = :id";
-        return jdbcTemplate.query(sql, Map.of("id", id), FILM_ROW_MAPPER).stream().findFirst();
+        return jdbcTemplate.query(sql, Map.of("id", id), filmRowMapper).stream().findFirst();
     }
 
     @Override
     public Collection<Film> findAll() {
         String sql = "SELECT * FROM FILMS";
-        return jdbcTemplate.query(sql, FILM_ROW_MAPPER);
+        return jdbcTemplate.query(sql, filmRowMapper);
     }
 
     @Override
@@ -108,7 +108,7 @@ public class FilmDbStorage implements FilmRepository {
         }
 
         String sql = "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (:film_id, :genre_id)";
-        for (GENRE g : new HashSet<>(film.getGenres())) {   // distinct на всякий
+        for (GENRE g : new HashSet<>(film.getGenres())) { 
             jdbcTemplate.update(sql, Map.of(
                     "film_id", film.getId(),
                     "genre_id", g.getId()
