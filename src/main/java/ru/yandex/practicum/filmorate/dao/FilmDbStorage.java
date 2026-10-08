@@ -186,7 +186,7 @@ public class FilmDbStorage implements FilmRepository {
                 ORDER BY g.Genre_id
                 """;
 
-        return new LinkedHashSet<>(jdbcTemplate.query(   // ← LinkedHashSet
+        return new LinkedHashSet<>(jdbcTemplate.query(
                 sql,
                 Map.of("filmId", filmId),
                 (rs, rowNum) -> GENRE.fromId(rs.getInt("Genre_id"))
