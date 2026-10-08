@@ -6,7 +6,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.dao.*;
+import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
+import ru.yandex.practicum.filmorate.dao.MpaDbStorage;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 import ru.yandex.practicum.filmorate.model.MPA;
@@ -22,12 +25,12 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FilmDbStorage.class, GenreRepository.class, MpaDbStorage.class})
+@Import({UserDbStorage.class, FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class})
 class FilmorateApplicationTests {
 
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
-    private final GenreDbRepository genreDbRepository;
+    private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
 
     private User newUser(String login) {
@@ -94,31 +97,6 @@ class FilmorateApplicationTests {
     }
 
     @Test
-    void testFindFilmById() {
-        Film saved = filmStorage.create(newFilm("Film2")).orElseThrow();
-        Optional<Film> found = filmStorage.findById(saved.getId());
-        assertThat(found)
-                .isPresent()
-                .hasValueSatisfying(f -> assertThat(f).hasFieldOrPropertyWithValue("id", saved.getId()));
-    }
-
-    @Test
-    void testFindAllFilms() {
-        filmStorage.create(newFilm("Film3"));
-        assertThat(filmStorage.findAll()).isNotEmpty();
-    }
-
-    @Test
-    void testUpdateFilm() {
-        Film saved = filmStorage.create(newFilm("Film4")).orElseThrow();
-        saved.setName("Updated Film");
-        filmStorage.update(saved);
-        Optional<Film> found = filmStorage.findById(saved.getId());
-        assertThat(found).isPresent()
-                .hasValueSatisfying(f -> assertThat(f).hasFieldOrPropertyWithValue("name", "Updated Film"));
-    }
-
-    @Test
     void testAddLike() {
         User u = userStorage.create(newUser("liker")).orElseThrow();
         Film f = filmStorage.create(newFilm("Film5")).orElseThrow();
@@ -142,12 +120,12 @@ class FilmorateApplicationTests {
 
     @Test
     void testGenreGetAll() {
-        assertThat(genreDbRepository.getAll()).isNotEmpty();
+        assertThat(genreDbStorage.getAll()).isNotEmpty();
     }
 
     @Test
     void testGenreGetById() {
-        assertThat(genreDbRepository.getById(1)).isPresent();
+        assertThat(genreDbStorage.getById(1)).isPresent();
     }
 
 

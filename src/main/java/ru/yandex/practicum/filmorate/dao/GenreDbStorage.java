@@ -13,7 +13,7 @@ import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
-public class GenreDbRepository implements GenreRepository {
+public class GenreDbStorage implements GenreRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
 
     private static final RowMapper<GENRE> genreRowMapper = (rs, rowNum) ->
