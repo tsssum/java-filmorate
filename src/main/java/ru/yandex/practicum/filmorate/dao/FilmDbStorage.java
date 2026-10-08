@@ -74,6 +74,16 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
+    public List<Film> getPopular(int count) {
+        String sql = "SELECT f.* FROM FILMS f " +
+                "LEFT JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID " +
+                "GROUP BY f.FILM_ID " +
+                "ORDER BY COUNT(l.User_id) DESC, f.FILM_ID ASC " +
+                "LIMIT :count";
+        return jdbcTemplate.query(sql, Map.of("count", count), filmRowMapper);
+    }
+
+    @Override
     public void delete(Film film) {
         String sql = "DELETE FROM FILMS WHERE FILM_ID = :id";
         jdbcTemplate.update(sql, Map.of("id", film.getId()));

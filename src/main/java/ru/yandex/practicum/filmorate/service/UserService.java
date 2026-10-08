@@ -25,9 +25,6 @@ public class UserService {
     }
 
     public Collection<User> findAll() {
-        if (userStorage.findAll().isEmpty()) {
-            throw new NotFoundException("No users found");
-        }
         return userStorage.findAll();
     }
 
@@ -67,61 +64,35 @@ public class UserService {
     }
 
     public void addFriends(Long userId, Long friendId) {
-        if (!userId.equals(friendId)) {
-            Optional<User> user = userStorage.findById(userId);
-            Optional<User> friend = userStorage.findById(friendId);
-            if (user.isPresent() && friend.isPresent()) {
-                user.get().getFriends().add(friend.get());
-                friend.get().getFriends().add(user.get());
-            }
-            log.debug("Added user {} to friends {}", user, friend);
-
-            if (user.isEmpty()) {
-                throw new NotFoundException("User with id = " + userId + " not found");
-            }
-            if (friend.isEmpty()) {
-                throw new NotFoundException("User with id = " + userId + " not found");
-            }
-        }
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " not found"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + friendId + " not found"));
+        userStorage.addFriend(userId, friendId, 1);   // 1 = CONFIRMED
     }
 
     public void deleteFriend(Long userId, Long friendId) {
-        if (!userId.equals(friendId)) {
-            Optional<User> user = userStorage.findById(userId);
-            Optional<User> friend = userStorage.findById(friendId);
-            if (user.isPresent() && friend.isPresent()) {
-                user.get().getFriends().remove(friend.get());
-                friend.get().getFriends().remove(user.get());
-            }
-            log.debug("Removed user {} from friends {}", user, friend);
-
-            if (user.isEmpty()) {
-                throw new NotFoundException("User with id = " + userId + " not found");
-            }
-            if (friend.isEmpty()) {
-                throw new NotFoundException("User with id = " + userId + " not found");
-            }
-        }
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " not found"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + friendId + " not found"));
+        userStorage.deleteFriend(userId, friendId);
     }
 
-    public Set<User> getCommonFriends(Long userId, Long friendId) {
-        Set<User> commonFriends = new HashSet<>();
-        if (!userId.equals(friendId)) {
-            Optional<User> user = userStorage.findById(userId);
-            Optional<User> friend = userStorage.findById(friendId);
-            if (user.isPresent() && friend.isPresent()) {
-                commonFriends = user.get().getFriends().stream().filter(friend.get().getFriends()::contains).collect(Collectors.toSet());
-            }
-        } else {
-            commonFriends = userStorage.findById(userId).get().getFriends();
-        }
-        return commonFriends;
+    public Collection<User> getCommonFriends(Long userId, Long friendId) {
+        userStorage.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " not found"));
+        userStorage.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + friendId + " not found"));
+
+        Set<User> common = new HashSet<>(userStorage.getFriends(userId));
+        common.retainAll(new HashSet<>(userStorage.getFriends(friendId)));
+        return common;
     }
 
-    public Set<User> findFriends(Long id) {
-        if (userStorage.findById(id).isEmpty()) {
-            throw new NotFoundException("User with id = " + id + " not found");
-        }
-        return userStorage.findById(id).get().getFriends();
+    public Collection<User> findFriends(Long id) {
+        userStorage.findById(id)
+                .orElseThrow(() -> new NotFoundException("User with id = " + id + " not found"));
+        return userStorage.getFriends(id);   // ← читаем из БД, не из памяти
     }
 }

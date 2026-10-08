@@ -16,7 +16,6 @@ import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Slf4j
 @Service
@@ -111,9 +110,7 @@ public class FilmService {
     }
 
     public List<Film> getPopular(int count) {
-        if (count <= 0) {
-            throw new IllegalArgumentException("count must be greater than 0");
-        }
-        return filmStorage.findAll().stream().sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed().thenComparing(Film::getId)).limit(count).collect(Collectors.toList());
+        if (count <= 0) throw new IllegalArgumentException("count must be greater than 0");
+        return filmStorage.getPopular(count);
     }
 }
