@@ -8,17 +8,18 @@ import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import java.util.Arrays;
 
 @JsonFormat(shape = JsonFormat.Shape.OBJECT)
-public enum MPA {
-    G(1, "G"),
-    PG(2, "PG"),
-    PG_13(3, "PG-13"),
-    R(4, "R"),
-    NC_17(5, "NC-17");
+public enum GENRE {
+    COMEDY(1, "Комедия"),
+    DRAMA(2, "Драма"),
+    CARTOON(3, "Мультфильм"),
+    THRILLER(4, "Триллер"),
+    DOCUMENTARY(5, "Документальный"),
+    ACTION(6, "Боевик");
 
     private final int id;
     private final String name;
 
-    MPA(int id, String name) {
+    GENRE(int id, String name) {
         this.id = id;
         this.name = name;
     }
@@ -33,15 +34,15 @@ public enum MPA {
         return name;
     }
 
-    public static MPA fromId(int id) {
-        return Arrays.stream(values()).filter(m -> m.id == id).findFirst().orElse(null);
+    public static GENRE fromId(int id) {
+        return Arrays.stream(values()).filter(g -> g.id == id).findFirst().orElse(null);
     }
 
     @JsonCreator
-    public static MPA fromJson(@JsonProperty("id") Integer id) {
+    public static GENRE fromJson(@JsonProperty("id") Integer id) {
         if (id == null) return null;
-        MPA mpa = fromId(id);
-        if (mpa == null) throw new NotFoundException("Рейтинг с id=" + id + " не найден");
-        return mpa;
+        GENRE g = fromId(id);
+        if (g == null) throw new NotFoundException("Жанр с id=" + id + " не найден");
+        return g;
     }
 }
