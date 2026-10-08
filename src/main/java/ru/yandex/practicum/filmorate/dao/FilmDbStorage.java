@@ -83,7 +83,7 @@ public class FilmDbStorage implements FilmRepository {
                 keyHolder);
         film.setId(keyHolder.getKey().longValue());
         saveGenres(film);
-        return Optional.of(film);
+        return findById(film.getId()); // это из-за порядка жанров истг
     }
 
     @Override
@@ -173,7 +173,7 @@ public class FilmDbStorage implements FilmRepository {
                 .addValue("mpa_id", film.getMpa() != null ? film.getMpa().getId() : null)
                 .addValue("duration", film.getDuration()));
         saveGenres(film);
-        return Optional.of(film);
+        return findById(film.getId());
     }
 
     @Override
@@ -183,9 +183,10 @@ public class FilmDbStorage implements FilmRepository {
                 FROM FILM_GENRES fg
                 JOIN GENRE g ON g.Genre_id = fg.Genre_id
                 WHERE fg.FILM_ID = :filmId
+                ORDER BY g.Genre_id
                 """;
 
-        return new HashSet<>(jdbcTemplate.query(
+        return new LinkedHashSet<>(jdbcTemplate.query(   // ← LinkedHashSet
                 sql,
                 Map.of("filmId", filmId),
                 (rs, rowNum) -> GENRE.fromId(rs.getInt("Genre_id"))
@@ -204,7 +205,7 @@ public class FilmDbStorage implements FilmRepository {
 
         String sql = "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (:film_id, :genre_id)";
 
-        SqlParameterSource[] batch = new HashSet<>(film.getGenres()).stream()
+        SqlParameterSource[] batch = new LinkedHashSet<>(film.getGenres()).stream()
                 .map(g -> new MapSqlParameterSource()
                         .addValue("film_id", film.getId())
                         .addValue("genre_id", g.getId()))
