@@ -25,7 +25,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
 @Import({UserDbStorage.class, FilmDbStorage.class, GenreRepository.class, MpaDbStorage.class})
-class FilmoRateApplicationTests {
+class FilmorateApplicationTests {
 
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
