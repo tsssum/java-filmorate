@@ -88,8 +88,10 @@ public class FilmService {
         Optional<User> user = userStorage.findById(userId);
         if (film.isPresent() && user.isPresent()) {
             Set<Long> likes = film.get().getLikes();
+            if (likes == null) likes = new HashSet<>();
             likes.add(user.get().getId());
             film.get().setLikes(likes);
+            filmStorage.addLike(user.get().getId(), filmId);
         }
         if (film.isEmpty()) throw new NotFoundException("Film with id " + filmId + " not found");
         if (user.isEmpty()) throw new NotFoundException("User with id " + userId + " not found");
@@ -102,6 +104,7 @@ public class FilmService {
             Set<Long> likes = film.get().getLikes();
             likes.remove(user.get().getId());
             film.get().setLikes(likes);
+            filmStorage.removeLike(user.get().getId(), filmId);
         }
         if (film.isEmpty()) throw new NotFoundException("Film with id " + filmId + " not found");
         if (user.isEmpty()) throw new NotFoundException("User with id " + userId + " not found");

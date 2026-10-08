@@ -12,6 +12,8 @@ public interface UserRepository {
 
     Optional<User> create(User user);
 
+    Collection<User> getFriends(long userId);
+
     void addFriend(long userId, long friendId, long statusId);
 
     void deleteFriend(long userId, long friendId);

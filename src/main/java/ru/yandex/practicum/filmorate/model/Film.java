@@ -9,6 +9,8 @@ import lombok.EqualsAndHashCode;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.Set;
 
 @lombok.Data
@@ -22,11 +24,11 @@ public class Film {
     String description;
     @NotNull
     LocalDate releaseDate;
-    Set<GENRE> genres;
+    Set<GENRE> genres = new LinkedHashSet<>();
     MPA mpa;
     @Positive
     int duration;
-    Set<Long> likes;
+    Set<Long> likes = new HashSet<>();
 
     @JsonIgnore
     public Film(long filmId, String title, String description, LocalDate releaseDate,

@@ -16,6 +16,8 @@ public interface FilmRepository {
 
     void addLike(long userId, long filmId);
 
+    void removeLike(long userId, long filmId);
+
     void delete(Film film);
 
     Optional<Film> update(Film filmId);

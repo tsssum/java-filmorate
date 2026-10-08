@@ -69,6 +69,14 @@ public class UserDbStorage implements UserRepository {
     }
 
     @Override
+    public Collection<User> getFriends(long userId) {
+        String sql = "SELECT u.* FROM USERS u " +
+                "JOIN FRIENDSHIP f ON f.FRIEND_ID = u.USER_ID " +
+                "WHERE f.USER_ID = :id";
+        return jdbcTemplate.query(sql, Map.of("id", userId), userRowMapper);
+    }
+
+    @Override
     public void deleteFriend(long userId, long friendId) {
         String sql = "DELETE FROM FRIENDSHIP " +
                 "WHERE USER_ID = :user_id AND FRIEND_ID = :friend_id";

@@ -10,10 +10,7 @@ import org.springframework.stereotype.Repository;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 
-import java.util.Collection;
-import java.util.HashSet;
-import java.util.Map;
-import java.util.Optional;
+import java.util.*;
 
 @Repository
 @RequiredArgsConstructor
@@ -71,6 +68,12 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
+    public void removeLike(long userId, long filmId) {
+        String sql = "DELETE FROM USERS_FILMS_LIKES WHERE User_id = :user_id AND Film_id = :film_id";
+        jdbcTemplate.update(sql, Map.of("user_id", userId, "film_id", filmId));
+    }
+
+    @Override
     public void delete(Film film) {
         String sql = "DELETE FROM FILMS WHERE FILM_ID = :id";
         jdbcTemplate.update(sql, Map.of("id", film.getId()));
@@ -95,7 +98,7 @@ public class FilmDbStorage implements FilmRepository {
     @Override
     public HashSet<GENRE> findGenresByFilmId(long id) {
         String sql = "SELECT GENRE_ID FROM FILM_GENRES WHERE FILM_ID = :id ORDER BY GENRE_ID";
-        return new HashSet<>(jdbcTemplate.query(sql, Map.of("id", id),
+        return new LinkedHashSet<>(jdbcTemplate.query(sql, Map.of("id", id),
                 (rs, rowNum) -> GENRE.fromId(rs.getInt("GENRE_ID"))));
     }
 
