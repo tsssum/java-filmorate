@@ -9,16 +9,14 @@ BIRTHDAY DATE
 
 CREATE TABLE IF NOT EXISTS MPA
 (
-MPA_id int not null primary key auto_increment,
-name varchar(255) not null,
-constraint MPA_PK primary key (MPA_id)
+    MPA_id INT PRIMARY KEY AUTO_INCREMENT,
+    name   VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS Genre
 (
-genre_id int not null primary key auto_increment,
-name varchar(255) not null,
-constraint Genre_PK primary key (genre_id)
+    genre_id INT PRIMARY KEY AUTO_INCREMENT,
+    name     VARCHAR(255) NOT NULL
 );
 
 CREATE TABLE IF NOT EXISTS FILMS
@@ -57,4 +55,5 @@ CREATE TABLE IF NOT EXISTS FILM_GENRES
     GENRE_ID INT NOT NULL,
     CONSTRAINT pk_film_genres PRIMARY KEY (FILM_ID, GENRE_ID),
     FOREIGN KEY (FILM_ID) REFERENCES FILMS(FILM_ID) ON DELETE CASCADE
+    FOREIGN KEY (GENRE_ID) REFERENCES Genre(genre_id) ON DELETE CASCADE
 );

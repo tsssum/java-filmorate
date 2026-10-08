@@ -25,7 +25,7 @@ public class FilmDbStorage implements FilmRepository {
             rs.getString("DESCRIPTION"),
             rs.getDate("RELEASE_DATE").toLocalDate(),
             new HashSet(),
-            rs.getObject("MPA_id", MPA.class) == null
+            rs.getObject("MPA_id", Integer.class) == null
                     ? null
                     : MPA.fromId(rs.getInt("MPA_id")),
             rs.getString("DURATION")
@@ -33,8 +33,15 @@ public class FilmDbStorage implements FilmRepository {
 
     @Override
     public Optional<Film> findById(long id) {
-        String sql = "select * from FILMS where FILM_ID = :id";
-        return jdbcTemplate.query(sql, Map.of("id", id), filmRowMapper).stream().findFirst();
+        String sql = "SELECT FILM_ID, TITLE, DESCRIPTION, RELEASE_DATE, DURATION, MPA_id " +
+                "FROM FILMS WHERE FILM_ID = :id";
+        return jdbcTemplate.query(sql, Map.of("id", id), filmRowMapper)
+                .stream()
+                .findFirst()
+                .map(f -> {
+                    f.setGenres(new HashSet<>(findGenresByFilmId(f.getId())));
+                    return f;
+                });
     }
 
     @Override
