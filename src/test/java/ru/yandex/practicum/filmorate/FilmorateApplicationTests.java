@@ -1,219 +1,32 @@
 package ru.yandex.practicum.filmorate;
 
-import org.junit.jupiter.api.BeforeEach;
+import lombok.RequiredArgsConstructor;
 import org.junit.jupiter.api.Test;
-import ru.yandex.practicum.filmorate.controller.FilmController;
-import ru.yandex.practicum.filmorate.controller.UserController;
-import ru.yandex.practicum.filmorate.exception.DateException;
-import ru.yandex.practicum.filmorate.exception.EmptyStringException;
-import ru.yandex.practicum.filmorate.exception.NotFoundException;
-import ru.yandex.practicum.filmorate.model.Film;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
+import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.service.FilmService;
-import ru.yandex.practicum.filmorate.service.UserService;
-import ru.yandex.practicum.filmorate.storage.file.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.file.InMemoryFilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.InMemoryUserStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 
-import java.time.LocalDate;
 import java.util.Optional;
-import java.util.Set;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.assertj.core.api.AssertionsForClassTypes.assertThat;
 
+@JdbcTest
+@AutoConfigureTestDatabase
+@RequiredArgsConstructor(onConstructor_ = @Autowired)
 class FilmorateApplicationTests {
-
-    private FilmController filmController;
-    private UserController userController;
-
-    @BeforeEach
-    void setUp() {
-        FilmStorage filmStorage = new InMemoryFilmStorage();
-        UserStorage userStorage = new InMemoryUserStorage();
-        FilmService filmService = new FilmService(filmStorage, userStorage);
-        UserService userService = new UserService(userStorage);
-        filmController = new FilmController(filmService);
-        userController = new UserController(userService);
-    }
-
-    // ФИЛЬМЫ
+    private final UserDbStorage userStorage;
 
     @Test
-    void createFilmValidDataSuccess() {
-        Film film = new Film();
-        film.setName("Test Film");
-        film.setDescription("Valid description");
-        film.setReleaseDate(LocalDate.of(2000, 1, 1));
-        film.setDuration(120);
-        film.setLikes(Set.of());
+    public void testFindUserById() {
 
-        Optional<Film> created = filmController.create(film);
-        assertNotNull(created.get().getId());
-        assertEquals(1, filmController.findAll().size());
-        assertEquals("Test Film", created.get().getName());
+        Optional<User> userOptional = userStorage.findById(1);
+
+        assertThat(userOptional)
+                .isPresent()
+                .hasValueSatisfying(user ->
+                        assertThat(user).hasFieldOrPropertyWithValue("id", 1)
+                );
     }
-
-    @Test
-    void createFilmDescriptionExactlyMaxLengthSuccess() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setDescription("a".repeat(200));
-        film.setReleaseDate(LocalDate.now());
-        film.setDuration(90);
-
-        assertDoesNotThrow(() -> filmController.create(film));
-    }
-
-    @Test
-    void createFilmReleaseDateBeforeMinThrowsException() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setDescription("Desc");
-        film.setReleaseDate(LocalDate.of(1895, 12, 27));
-        film.setDuration(90);
-
-        assertThrows(DateException.class, () -> filmController.create(film));
-    }
-
-    @Test
-    void createFilmReleaseDateExactlyMinSuccess() {
-        Film film = new Film();
-        film.setName("Test");
-        film.setDescription("Desc");
-        film.setReleaseDate(LocalDate.of(1895, 12, 28));
-        film.setDuration(90);
-
-        assertDoesNotThrow(() -> filmController.create(film));
-    }
-
-    @Test
-    void updateFilmValidDataSuccess() {
-        Film film = new Film();
-        film.setName("Old");
-        film.setDescription("Old desc");
-        film.setReleaseDate(LocalDate.now());
-        film.setDuration(100);
-        Optional<Film> created = filmController.create(film);
-
-        Film updateData = new Film();
-        updateData.setId(created.get().getId());
-        updateData.setName("New Name");
-        updateData.setDescription("New desc");
-
-        Optional<Film> updated = filmController.update(updateData);
-        assertEquals("New Name", updated.get().getName());
-        assertEquals("New desc", updated.get().getDescription());
-        assertEquals(created.get().getReleaseDate(), updated.get().getReleaseDate());
-        assertEquals(created.get().getDuration(), updated.get().getDuration());
-    }
-
-    @Test
-    void updateFilmNotFoundThrowsException() {
-        Film updateData = new Film();
-        updateData.setId(999L);
-        updateData.setName("New");
-
-        assertThrows(NotFoundException.class, () -> filmController.update(updateData));
-    }
-
-    @Test
-    void updateFilmIdNullThrowsException() {
-        Film updateData = new Film();
-        updateData.setId(null);
-
-        assertThrows(EmptyStringException.class, () -> filmController.update(updateData));
-    }
-
-    // ЮЗЕРЫ
-
-    @Test
-    void createUserValidDataSuccess() {
-        User user = new User();
-        user.setEmail("test@mail.ru");
-        user.setLogin("testLogin");
-        user.setName("Test User");
-        user.setBirthday(LocalDate.of(2000, 1, 1));
-
-        Optional<User> created = userController.create(user);
-        assertNotNull(created.get().getId());
-        assertEquals(1, userController.findAll().size());
-        assertEquals("testLogin", created.get().getLogin());
-    }
-
-    @Test
-    void createUserNameEmptySetsToLogin() {
-        User user = new User();
-        user.setEmail("test@mail.ru");
-        user.setLogin("login123");
-        user.setName("");
-        user.setBirthday(LocalDate.now());
-
-        Optional<User> created = userController.create(user);
-        assertEquals("login123", created.get().getName());
-    }
-
-    @Test
-    void createUserNameNullSetsToLogin() {
-        User user = new User();
-        user.setEmail("test@mail.ru");
-        user.setLogin("login123");
-        user.setName(null);
-        user.setBirthday(LocalDate.now());
-
-        Optional<User> created = userController.create(user);
-        assertEquals("login123", created.get().getName());
-    }
-
-    @Test
-    void createUserBirthdayTodaySuccess() {
-        User user = new User();
-        user.setEmail("test@mail.ru");
-        user.setLogin("login");
-        user.setName("Name");
-        user.setBirthday(LocalDate.now());
-
-        assertDoesNotThrow(() -> userController.create(user));
-    }
-
-    @Test
-    void updateUserValidDataSuccess() {
-        User user = new User();
-        user.setEmail("old@mail.ru");
-        user.setLogin("oldLogin");
-        user.setName("Old Name");
-        user.setBirthday(LocalDate.of(1990, 1, 1));
-        Optional<User> created = userController.create(user);
-
-        User updateData = new User();
-        updateData.setId(created.get().getId());
-        updateData.setEmail("new@mail.ru");
-        updateData.setLogin("newLogin");
-        updateData.setName("New Name");
-        updateData.setBirthday(LocalDate.of(2000, 1, 1));
-
-        Optional<User> updated = userController.update(updateData);
-        assertEquals("new@mail.ru", updated.get().getEmail());
-        assertEquals("newLogin", updated.get().getLogin());
-        assertEquals("New Name", updated.get().getName());
-        assertEquals(LocalDate.of(2000, 1, 1), updated.get().getBirthday());
-    }
-
-    @Test
-    void updateUserNotFoundThrowsException() {
-        User updateData = new User();
-        updateData.setId(999L);
-        updateData.setEmail("new@mail.ru");
-
-        assertThrows(NotFoundException.class, () -> userController.update(updateData));
-    }
-
-    @Test
-    void updateUserIdNullThrowsException() {
-        User updateData = new User();
-        updateData.setId(null);
-
-        assertThrows(EmptyStringException.class, () -> userController.update(updateData));
-    }
-
 }

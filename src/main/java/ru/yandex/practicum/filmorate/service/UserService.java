@@ -3,10 +3,10 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.EmptyStringException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.util.Collection;
 import java.util.HashSet;
@@ -17,10 +17,10 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class UserService {
-    private UserStorage userStorage;
+    private UserDbStorage userStorage;
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserDbStorage userStorage) {
         this.userStorage = userStorage;
     }
 
@@ -110,9 +110,7 @@ public class UserService {
             Optional<User> user = userStorage.findById(userId);
             Optional<User> friend = userStorage.findById(friendId);
             if (user.isPresent() && friend.isPresent()) {
-                commonFriends = user.get().getFriends().stream()
-                        .filter(friend.get().getFriends()::contains)
-                        .collect(Collectors.toSet());
+                commonFriends = user.get().getFriends().stream().filter(friend.get().getFriends()::contains).collect(Collectors.toSet());
             }
         } else {
             commonFriends = userStorage.findById(userId).get().getFriends();

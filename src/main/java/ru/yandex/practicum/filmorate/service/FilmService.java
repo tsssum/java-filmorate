@@ -3,13 +3,16 @@ package ru.yandex.practicum.filmorate.service;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
+import ru.yandex.practicum.filmorate.dao.GenreRepository;
+import ru.yandex.practicum.filmorate.dao.MpaDbStorage;
+import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.exception.DateException;
 import ru.yandex.practicum.filmorate.exception.EmptyStringException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.GENRE;
 import ru.yandex.practicum.filmorate.model.User;
-import ru.yandex.practicum.filmorate.storage.file.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.user.UserStorage;
 
 import java.time.LocalDate;
 import java.util.*;
@@ -18,21 +21,22 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
-    private final FilmStorage filmStorage;
-    private final UserStorage userStorage;
+    private final FilmDbStorage filmStorage;
+    private final UserDbStorage userStorage;
+    private final MpaDbStorage mpaStorage;
+    private final GenreRepository genreRepository;
 
     final LocalDate minDate = LocalDate.of(1895, 12, 28);
 
     @Autowired
-    public FilmService(FilmStorage filmStorage, UserStorage userStorage) {
+    public FilmService(FilmDbStorage filmStorage, UserDbStorage userStorage, MpaDbStorage mpaStorage, GenreRepository genreRepository) {
         this.filmStorage = filmStorage;
         this.userStorage = userStorage;
+        this.mpaStorage = mpaStorage;
+        this.genreRepository = genreRepository;
     }
 
     public Collection<Film> findAll() {
-        if (filmStorage.findAll().isEmpty()) {
-            throw new NotFoundException("No films found");
-        }
         return filmStorage.findAll();
     }
 
@@ -42,6 +46,16 @@ public class FilmService {
         }
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
+        }
+        if (film.getMpa() != null && mpaStorage.getById(film.getMpa().getId()).isEmpty()) {
+            throw new NotFoundException("Рейтинг не найден");
+        }
+        if (film.getGenres() != null) {
+            for (GENRE g : film.getGenres()) {
+                if (genreRepository.getById(g.getId()).isEmpty()) {
+                    throw new NotFoundException("Жанр не найден: " + g.getId());
+                }
+            }
         }
         return filmStorage.create(film);
     }
@@ -77,10 +91,8 @@ public class FilmService {
             likes.add(user.get().getId());
             film.get().setLikes(likes);
         }
-        if (film.isEmpty())
-            throw new NotFoundException("Film with id " + filmId + " not found");
-        if (user.isEmpty())
-            throw new NotFoundException("User with id " + userId + " not found");
+        if (film.isEmpty()) throw new NotFoundException("Film with id " + filmId + " not found");
+        if (user.isEmpty()) throw new NotFoundException("User with id " + userId + " not found");
     }
 
     public void deleteLike(Long filmId, Long userId) {
@@ -91,20 +103,14 @@ public class FilmService {
             likes.remove(user.get().getId());
             film.get().setLikes(likes);
         }
-        if (film.isEmpty())
-            throw new NotFoundException("Film with id " + filmId + " not found");
-        if (user.isEmpty())
-            throw new NotFoundException("User with id " + userId + " not found");
+        if (film.isEmpty()) throw new NotFoundException("Film with id " + filmId + " not found");
+        if (user.isEmpty()) throw new NotFoundException("User with id " + userId + " not found");
     }
 
     public List<Film> getPopular(int count) {
         if (count <= 0) {
             throw new IllegalArgumentException("count must be greater than 0");
         }
-        return filmStorage.findAll().stream()
-                .sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed()
-                        .thenComparing(Film::getId))
-                .limit(count)
-                .collect(Collectors.toList());
+        return filmStorage.findAll().stream().sorted(Comparator.comparingInt((Film f) -> f.getLikes().size()).reversed().thenComparing(Film::getId)).limit(count).collect(Collectors.toList());
     }
 }

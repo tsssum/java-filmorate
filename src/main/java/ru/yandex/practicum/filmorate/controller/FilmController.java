@@ -24,7 +24,6 @@ public class FilmController {
 
     @GetMapping
     public Collection<Film> findAll() {
-        log.trace("Вызвано получение всех фильмов");
         return filmService.findAll();
     }
 

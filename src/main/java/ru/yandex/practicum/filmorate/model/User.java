@@ -8,6 +8,7 @@ import jakarta.validation.constraints.PastOrPresent;
 import lombok.EqualsAndHashCode;
 
 import java.time.LocalDate;
+import java.util.HashSet;
 import java.util.Set;
 
 @lombok.Data
@@ -23,7 +24,15 @@ public class User {
     @NotNull
     @PastOrPresent
     LocalDate birthday;
-    Confirmation friendshipStatus;
     @JsonIgnore
     Set<User> friends;
+
+    public User(long userId, String email, String login, String userName, LocalDate birthday) {
+        this.id = userId;
+        this.email = email;
+        this.login = login;
+        this.name = userName;
+        this.birthday = birthday;
+        this.friends = new HashSet<>();
+    }
 }
