@@ -47,7 +47,7 @@ public class UserService {
         if (userRepository.findById(newUser.getId()).isPresent()) {
             return userRepository.update(newUser);
         }
-        throw new NotFoundException("Фильм с id = " + newUser.getId() + " не найден");
+        throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
     }
 
     public void delete(User user) {

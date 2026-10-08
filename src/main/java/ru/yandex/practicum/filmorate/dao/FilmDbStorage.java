@@ -24,7 +24,7 @@ public class FilmDbStorage implements FilmRepository {
             rs.getString("TITLE"),
             rs.getString("DESCRIPTION"),
             rs.getDate("RELEASE_DATE").toLocalDate(),
-            new HashSet(),
+            new LinkedHashSet(),
             rs.getObject("MPA_id", Integer.class) == null
                     ? null
                     : MPA.fromId(rs.getInt("MPA_id")),
@@ -39,7 +39,7 @@ public class FilmDbStorage implements FilmRepository {
                 .stream()
                 .findFirst()
                 .map(f -> {
-                    f.setGenres(new HashSet<>(findGenresByFilmId(f.getId())));
+                    f.setGenres(new LinkedHashSet<>(findGenresByFilmId(f.getId())));
                     return f;
                 });
     }
@@ -61,7 +61,7 @@ public class FilmDbStorage implements FilmRepository {
 
         Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
         films.forEach(film ->
-                film.setGenres(new HashSet<>(
+                film.setGenres(new LinkedHashSet<>(
                         genresByFilm.getOrDefault(film.getId(), Set.of())
                 ))
         );
@@ -120,7 +120,7 @@ public class FilmDbStorage implements FilmRepository {
 
         Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
         films.forEach(film ->
-                film.setGenres(new HashSet<>(
+                film.setGenres(new LinkedHashSet<>(
                         genresByFilm.getOrDefault(film.getId(), Set.of())
                 ))
         );
@@ -136,6 +136,7 @@ public class FilmDbStorage implements FilmRepository {
                 FROM FILM_GENRES fg
                 JOIN GENRE g ON g.Genre_id = fg.Genre_id
                 WHERE fg.FILM_ID IN (:filmIds)
+                ORDER BY fg.FILM_ID, g.Genre_id
                 """;
 
         return jdbcTemplate.query(
@@ -146,7 +147,7 @@ public class FilmDbStorage implements FilmRepository {
                     while (rs.next()) {
                         Long filmId = rs.getLong("FILM_ID");
                         GENRE genre = GENRE.fromId(rs.getInt("Genre_id"));
-                        result.computeIfAbsent(filmId, k -> new HashSet<>()).add(genre);
+                        result.computeIfAbsent(filmId, k -> new LinkedHashSet<>()).add(genre);
                     }
                     return result;
                 }

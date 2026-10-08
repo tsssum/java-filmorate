@@ -83,7 +83,7 @@ public class FilmService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
-        filmRepository.addLike(filmId, userId);
+        filmRepository.addLike(userId, filmId);
     }
 
     public void deleteLike(Long filmId, Long userId) {
@@ -92,7 +92,7 @@ public class FilmService {
         userRepository.findById(userId)
                 .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
 
-        filmRepository.removeLike(filmId, userId);
+        filmRepository.removeLike(userId, filmId);
     }
 
     public List<Film> getPopular(int count) {
