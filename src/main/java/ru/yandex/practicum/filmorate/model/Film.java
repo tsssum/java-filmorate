@@ -32,13 +32,13 @@ public class Film {
 
     @JsonIgnore
     public Film(long filmId, String title, String description, LocalDate releaseDate,
-                Set genres, Integer mpaId, String duration) {
+                Set genres, MPA mpa, String duration) {
         this.id = filmId;
         this.name = title;
         this.description = description;
         this.releaseDate = releaseDate;
         this.genres = genres;
-        this.mpa = (mpaId == null || mpaId == 0) ? null : MPA.fromId(mpaId);
+        this.mpa = mpa;
         this.duration = Integer.parseInt(duration);
     }
 

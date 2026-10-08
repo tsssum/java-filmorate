@@ -7,6 +7,20 @@ USER_NAME VARCHAR(255) NOT NULL,
 BIRTHDAY DATE
 );
 
+CREATE TABLE IF NOT EXISTS MPA
+(
+MPA_id int not null primary key auto_increment,
+name varchar(255) not null,
+constraint MPA_PK primary key (MPA_id)
+);
+
+CREATE TABLE IF NOT EXISTS Genre
+(
+genre_id int not null primary key auto_increment,
+name varchar(255) not null,
+constraint Genre_PK primary key (genre_id)
+);
+
 CREATE TABLE IF NOT EXISTS FILMS
 (
 FILM_ID INT PRIMARY KEY AUTO_INCREMENT,
@@ -14,7 +28,8 @@ TITLE VARCHAR(255) NOT NULL,
 DESCRIPTION VARCHAR(255) NOT NULL,
 RELEASE_DATE DATE,
 MPA_id INT,
-DURATION INT
+DURATION INT,
+CONSTRAINT fk_films_mpa FOREIGN KEY (MPA_id) REFERENCES MPA (MPA_id)
 );
 
 CREATE TABLE IF NOT EXISTS USERS_FILMS_LIKES
@@ -43,4 +58,3 @@ CREATE TABLE IF NOT EXISTS FILM_GENRES
     CONSTRAINT pk_film_genres PRIMARY KEY (FILM_ID, GENRE_ID),
     FOREIGN KEY (FILM_ID) REFERENCES FILMS(FILM_ID) ON DELETE CASCADE
 );
-

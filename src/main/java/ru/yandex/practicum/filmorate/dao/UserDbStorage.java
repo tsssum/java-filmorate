@@ -77,6 +77,23 @@ public class UserDbStorage implements UserRepository {
     }
 
     @Override
+    public Collection<User> getCommonFriends(Long userId, Long friendId) {
+        String sql = """
+                SELECT u.USER_ID, u.EMAIL, u.LOGIN, u.NAME, u.BIRTHDAY
+                FROM USERS u
+                JOIN FRIENDS f1 ON f1.FRIEND_ID = u.USER_ID AND f1.USER_ID = :userId
+                JOIN FRIENDS f2 ON f2.FRIEND_ID = u.USER_ID AND f2.USER_ID = :friendId
+                ORDER BY u.USER_ID
+                """;
+
+        return jdbcTemplate.query(
+                sql,
+                Map.of("userId", userId, "friendId", friendId),
+                userRowMapper
+        );
+    }
+
+    @Override
     public void deleteFriend(long userId, long friendId) {
         String sql = "DELETE FROM FRIENDSHIP " +
                 "WHERE USER_ID = :user_id AND FRIEND_ID = :friend_id";

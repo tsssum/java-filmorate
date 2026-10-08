@@ -1,19 +1,5 @@
-CREATE TABLE IF NOT EXISTS MPA
-(
-MPA_id int not null primary key auto_increment,
-name varchar(255) not null,
-constraint MPA_PK primary key (MPA_id)
-);
-
 merge into MPA (MPA_id, name)
 values (1, 'G'), (2, 'PG'), (3, 'PG_13'), (4, 'R'), (5, 'NC_17');
-
-CREATE TABLE IF NOT EXISTS Genre
-(
-genre_id int not null primary key auto_increment,
-name varchar(255) not null,
-constraint Genre_PK primary key (genre_id)
-);
 
 merge into Genre (genre_id, name)
 values (1, 'DRAMA'), (2, 'COMEDY'), (3, 'ACTION'), (4, 'HORROR'), (5, 'THRILLER'), (6, 'SPORT');

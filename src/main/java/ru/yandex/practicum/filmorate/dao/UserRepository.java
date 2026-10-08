@@ -14,6 +14,8 @@ public interface UserRepository {
 
     Collection<User> getFriends(long userId);
 
+    Collection<User> getCommonFriends(Long userId, Long friendId);
+
     void addFriend(long userId, long friendId, long statusId);
 
     void deleteFriend(long userId, long friendId);

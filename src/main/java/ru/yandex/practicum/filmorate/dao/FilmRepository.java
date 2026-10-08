@@ -25,5 +25,5 @@ public interface FilmRepository {
 
     Optional<Film> update(Film filmId);
 
-    Set<GENRE> findGenresByFilmId(long id);
+    Set<GENRE> findGenresByFilmId(Long filmId);
 }

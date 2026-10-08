@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.dao.MpaDbStorage;
 import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.time.LocalDate;
@@ -38,7 +39,7 @@ class FilmorateApplicationTests {
 
     private Film newFilm(String title) {
         return new Film(0, title, "desc", LocalDate.of(2000, 1, 1),
-                new HashSet<>(Set.of(GENRE.DRAMA)), 1, "120");
+                new HashSet<>(Set.of(GENRE.DRAMA)), MPA.G, "120");
     }
 
     @Test
