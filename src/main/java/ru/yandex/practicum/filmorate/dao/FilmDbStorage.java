@@ -108,7 +108,7 @@ public class FilmDbStorage implements FilmRepository {
         }
 
         String sql = "INSERT INTO FILM_GENRES (FILM_ID, GENRE_ID) VALUES (:film_id, :genre_id)";
-        for (GENRE g : new HashSet<>(film.getGenres())) { 
+        for (GENRE g : new HashSet<>(film.getGenres())) {
             jdbcTemplate.update(sql, Map.of(
                     "film_id", film.getId(),
                     "genre_id", g.getId()
