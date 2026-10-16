@@ -100,6 +100,14 @@ public class FilmService {
         return filmRepository.getPopular(count);
     }
 
+    public Collection<Film> getCommon(Long userId, Long friendId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id " + userId + " not found"));
+        userRepository.findById(friendId)
+                .orElseThrow(() -> new NotFoundException("User with id " + friendId + " not found"));
+        return filmRepository.getCommon(userId, friendId);
+    }
+
     private void validateFilm(Film film) {
         if (film.getReleaseDate().isBefore(minDate)) {
             throw new DateException("Дата релиза не может быть раньше " + minDate);

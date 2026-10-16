@@ -193,6 +193,37 @@ public class FilmDbStorage implements FilmRepository {
         ));
     }
 
+    @Override
+    public Collection<Film> getCommon(Long userId, Long friendId) {
+        String sql = """
+                SELECT f.*
+                FROM FILMS f
+                JOIN USERS_FILMS_LIKES u1 ON u1.Film_id = f.FILM_ID AND u1.User_id = :userId
+                JOIN USERS_FILMS_LIKES u2 ON u2.Film_id = f.FILM_ID AND u2.User_id = :friendId
+                ORDER BY (
+                    SELECT COUNT(*)
+                    FROM USERS_FILMS_LIKES
+                    WHERE Film_id = f.FILM_ID
+                ) DESC,
+                f.FILM_ID ASC
+                """;
+        Collection<Film> films = jdbcTemplate.query(
+                sql,
+                Map.of("userId", userId, "friendId", friendId),
+                filmRowMapper);
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+
+        Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
+        films.forEach(film ->
+                film.setGenres(new LinkedHashSet<>(
+                        genresByFilm.getOrDefault(film.getId(), Set.of())
+                ))
+        );
+        return films;
+    }
+
     private void saveGenres(Film film) {
         jdbcTemplate.update(
                 "DELETE FROM FILM_GENRES WHERE FILM_ID = :id",
