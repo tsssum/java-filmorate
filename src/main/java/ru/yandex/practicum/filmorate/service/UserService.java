@@ -50,11 +50,11 @@ public class UserService {
         throw new NotFoundException("Пользователь с id = " + newUser.getId() + " не найден");
     }
 
-    public void delete(User user) {
-        if (userRepository.findById(user.getId()).isEmpty()) {
-            throw new NotFoundException("Пользователь с id = " + user.getId() + " не найден");
+    public void delete(Long userId) {
+        if (userRepository.findById(userId).isEmpty()) {
+            throw new NotFoundException("Пользователь с id = " + userId + " не найден");
         }
-        userRepository.delete(user);
+        userRepository.delete(userId);
     }
 
     public Optional<User> findById(Long id) {
