@@ -155,9 +155,9 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
-    public void delete(Film film) {
+    public void delete(Long filmId) {
         String sql = "DELETE FROM FILMS WHERE FILM_ID = :id";
-        jdbcTemplate.update(sql, Map.of("id", film.getId()));
+        jdbcTemplate.update(sql, Map.of("id", filmId));
     }
 
     @Override

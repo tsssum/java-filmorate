@@ -63,11 +63,11 @@ public class FilmService {
         return filmRepository.update(newFilm);
     }
 
-    public void delete(Film film) {
-        if (filmRepository.findById(film.getId()).isEmpty()) {
-            throw new NotFoundException("Фильм с id = " + film.getId() + " не найден");
+    public void delete(Long filmId) {
+        if (filmRepository.findById(filmId).isEmpty()) {
+            throw new NotFoundException("Фильм с id = " + filmId + " не найден");
         }
-        filmRepository.delete(film);
+        filmRepository.delete(filmId);
     }
 
     public Optional<Film> findById(Long id) {

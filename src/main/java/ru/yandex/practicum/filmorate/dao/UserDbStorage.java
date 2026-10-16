@@ -104,9 +104,9 @@ public class UserDbStorage implements UserRepository {
     }
 
     @Override
-    public void delete(User user) {
+    public void delete(Long userId) {
         String sql = "DELETE FROM USERS WHERE USER_ID = :id";
-        jdbcTemplate.update(sql, Map.of("id", user.getId()));
+        jdbcTemplate.update(sql, Map.of("id", userId));
     }
 
     @Override

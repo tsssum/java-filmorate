@@ -20,7 +20,7 @@ public interface UserRepository {
 
     void deleteFriend(long userId, long friendId);
 
-    void delete(User user);
+    void delete(Long userId);
 
     Optional<User> update(User user);
 }

@@ -21,7 +21,7 @@ public interface FilmRepository {
 
     List<Film> getPopular(int count);
 
-    void delete(Film film);
+    void delete(Long filmId);
 
     Optional<Film> update(Film filmId);
 

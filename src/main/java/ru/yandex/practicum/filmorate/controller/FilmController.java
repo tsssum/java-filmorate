@@ -42,9 +42,9 @@ public class FilmController {
         return filmService.update(newFilm);
     }
 
-    @DeleteMapping
-    public void delete(@RequestBody Film film) {
-        filmService.delete(film);
+    @DeleteMapping("/{filmId}")
+    public void delete(@PathVariable Long filmId) {
+        filmService.delete(filmId);
     }
 
     @PutMapping("/{id}/like/{userId}")
@@ -58,8 +58,8 @@ public class FilmController {
     }
 
     @GetMapping("/popular")
-    public List<Film> getPopular(@RequestParam(defaultValue = "10") int popularityValue) {
-        return filmService.getPopular(popularityValue);
+    public List<Film> getPopular(@RequestParam(defaultValue = "10") int count) {
+        return filmService.getPopular(count);
     }
 
     @GetMapping("/common")

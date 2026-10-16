@@ -85,7 +85,7 @@ class FilmorateApplicationTests {
     @Test
     void testDeleteUser() {
         User saved = userStorage.create(newUser("user5")).orElseThrow();
-        userStorage.delete(saved);
+        userStorage.delete(saved.getId());
         assertThat(userStorage.findById(saved.getId())).isEmpty();
     }
 
@@ -113,7 +113,7 @@ class FilmorateApplicationTests {
     @Test
     void testDeleteFilm() {
         Film saved = filmStorage.create(newFilm("Film7")).orElseThrow();
-        filmStorage.delete(saved);
+        filmStorage.delete(saved.getId());
         assertThat(filmStorage.findById(saved.getId())).isEmpty();
     }
 
