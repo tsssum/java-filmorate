@@ -7,9 +7,12 @@ import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 
@@ -17,6 +20,7 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserDbStorage implements UserRepository {
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final FilmRepository filmRepository;
 
     private static final RowMapper<User> userRowMapper = (rs, rowNum) -> new User(
             rs.getLong("USER_ID"),
@@ -121,5 +125,54 @@ public class UserDbStorage implements UserRepository {
                 "birthday", user.getBirthday()
         ));
         return Optional.of(user);
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long userId) {
+        String sql = """
+                WITH common_likes AS (
+                    SELECT l2.User_id AS similar_user_id, COUNT(*) AS overlap
+                    FROM USERS_FILMS_LIKES l1
+                    JOIN USERS_FILMS_LIKES l2 ON l2.Film_id = l1.Film_id
+                    WHERE l1.User_id = :userId
+                      AND l2.User_id <> :userId
+                    GROUP BY l2.User_id
+                ),
+                best_users AS (
+                    SELECT similar_user_id
+                    FROM common_likes
+                    WHERE overlap = (SELECT MAX(overlap) FROM common_likes)
+                )
+                SELECT DISTINCT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE,
+                                f.DURATION, f.MPA_id, fg.Genre_id
+                FROM FILMS f
+                JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID
+                LEFT JOIN FILM_GENRES fg ON fg.FILM_ID = f.FILM_ID
+                WHERE l.User_id IN (SELECT similar_user_id FROM best_users)
+                  AND f.FILM_ID NOT IN (
+                      SELECT Film_id FROM USERS_FILMS_LIKES WHERE User_id = :userId
+                  )
+                ORDER BY f.FILM_ID, fg.Genre_id
+                """;
+        Collection<Film> films = jdbcTemplate.query(
+                sql,
+                Map.of("userId", userId),
+                (rs, rowNum) -> new Film(
+                        rs.getLong("FILM_ID"),
+                        rs.getString("TITLE"),
+                        rs.getString("DESCRIPTION"),
+                        rs.getDate("RELEASE_DATE").toLocalDate(),
+                        new LinkedHashSet<>(),
+                        rs.getObject("MPA_id", Integer.class) == null
+                                ? null : MPA.fromId(rs.getInt("MPA_id")),
+                        rs.getString("DURATION")
+                )
+        );
+
+        films.forEach(film ->
+                film.setGenres(filmRepository.findGenresByFilmId(film.getId()))
+        );
+
+        return films;
     }
 }

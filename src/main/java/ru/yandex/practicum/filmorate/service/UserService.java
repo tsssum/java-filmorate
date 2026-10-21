@@ -7,6 +7,7 @@ import ru.yandex.practicum.filmorate.dao.UserDbStorage;
 import ru.yandex.practicum.filmorate.dao.UserRepository;
 import ru.yandex.practicum.filmorate.exception.EmptyStringException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
@@ -94,5 +95,11 @@ public class UserService {
         userRepository.findById(id)
                 .orElseThrow(() -> new NotFoundException("User with id = " + id + " not found"));
         return userRepository.getFriends(id);   // ← читаем из БД, не из памяти
+    }
+
+    public Collection<Film> getRecommendations(Long userId) {
+        userRepository.findById(userId)
+                .orElseThrow(() -> new NotFoundException("User with id = " + userId + " not found"));
+        return userRepository.getRecommendations(userId);
     }
 }
