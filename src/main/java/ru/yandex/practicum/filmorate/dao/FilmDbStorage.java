@@ -103,18 +103,30 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
-    public List<Film> getPopular(int count) {
+    public Collection<Film> getPopular(int count, Long genreId, Integer year) {
         String sql = """
-                SELECT f.*
+                SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_id
                 FROM FILMS f
                 LEFT JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID
-                GROUP BY f.FILM_ID
+                WHERE (:genreId IS NULL OR EXISTS (
+                           SELECT 1 FROM FILM_GENRES fg
+                           WHERE fg.FILM_ID = f.FILM_ID AND fg.Genre_id = :genreId
+                       ))
+                  AND (:year IS NULL OR EXTRACT(YEAR FROM f.RELEASE_DATE) = :year)
+                GROUP BY f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_id
                 ORDER BY COUNT(l.User_id) DESC, f.FILM_ID ASC
                 LIMIT :count
                 """;
 
-        List<Film> films = jdbcTemplate.query(sql, Map.of("count", count), filmRowMapper);
-        List<Long> filmIds = films.stream()
+        Collection<Film> films = jdbcTemplate.query(
+                sql,
+                new MapSqlParameterSource()
+                        .addValue("count", count)
+                        .addValue("genreId", genreId)
+                        .addValue("year", year),
+                filmRowMapper);
+
+        Collection<Long> filmIds = films.stream()
                 .map(Film::getId)
                 .toList();
 

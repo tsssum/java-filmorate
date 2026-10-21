@@ -4,7 +4,6 @@ import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 
 import java.util.Collection;
-import java.util.List;
 import java.util.Optional;
 import java.util.Set;
 
@@ -19,7 +18,7 @@ public interface FilmRepository {
 
     void removeLike(long userId, long filmId);
 
-    List<Film> getPopular(int count);
+    Collection<Film> getPopular(int count, Long genreId, Integer yeara);
 
     void delete(Long filmId);
 
