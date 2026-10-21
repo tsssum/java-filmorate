@@ -133,36 +133,32 @@ public class UserDbStorage implements UserRepository {
     @Override
     public Collection<Film> getRecommendations(long userId) {
         String sql = """
-                WITH common_likes AS (
-                    SELECT l2.User_id AS similar_user_id, COUNT(*) AS over
-                    FROM USERS_FILMS_LIKES l1
-                    JOIN USERS_FILMS_LIKES l2 ON l2.Film_id = l1.Film_id
-                    WHERE l1.User_id = :userId
-                      AND l2.User_id <> :userId
-                    GROUP BY l2.User_id
-                ),
-                best_users AS (
-                    SELECT similar_user_id
-                    FROM common_likes
-                    WHERE over = (SELECT MAX(over) FROM common_likes)
-                )
-                SELECT DISTINCT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE,
-                                f.DURATION, f.MPA_id, fg.Genre_id
+                SELECT DISTINCT f.FILM_ID, f.TITLE, f.DESCRIPTION,
+                                f.RELEASE_DATE, f.DURATION, f.MPA_id
                 FROM FILMS f
                 JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID
-                LEFT JOIN FILM_GENRES fg ON fg.FILM_ID = f.FILM_ID
-                WHERE l.User_id IN (SELECT similar_user_id FROM best_users)
-                  AND f.FILM_ID NOT IN (
-                      SELECT Film_id FROM USERS_FILMS_LIKES WHERE User_id = :userId
-                  )
-                ORDER BY f.FILM_ID, fg.Genre_id
+                WHERE l.User_id IN (
+                    SELECT l2.User_id
+                    FROM USERS_FILMS_LIKES l1
+                    JOIN USERS_FILMS_LIKES l2 ON l2.Film_id = l1.Film_id
+                    WHERE l1.User_id = :userId AND l2.User_id <> :userId
+                    GROUP BY l2.User_id
+                    HAVING COUNT(*) = (
+                        SELECT MAX(cnt) FROM (
+                            SELECT COUNT(*) AS cnt
+                            FROM USERS_FILMS_LIKES a
+                            JOIN USERS_FILMS_LIKES b ON b.Film_id = a.Film_id
+                            WHERE a.User_id = :userId AND b.User_id <> :userId
+                            GROUP BY b.User_id
+                        ) sub
+                    )
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM USERS_FILMS_LIKES mine
+                    WHERE mine.Film_id = f.FILM_ID AND mine.User_id = :userId
+                )
+                ORDER BY f.FILM_ID
                 """;
-        Integer likes = jdbcTemplate.queryForObject(
-                "SELECT COUNT(*) FROM USERS_FILMS_LIKES WHERE User_id = :userId",
-                Map.of("userId", userId),
-                Integer.class);
-        log.info("getRecommendations userId={} likes={}", userId, likes);
-
         Collection<Film> films = jdbcTemplate.query(
                 sql,
                 Map.of("userId", userId),
