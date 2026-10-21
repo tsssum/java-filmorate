@@ -5,13 +5,11 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.dao.FilmRepository;
-import ru.yandex.practicum.filmorate.dao.GenreRepository;
-import ru.yandex.practicum.filmorate.dao.MpaRepository;
-import ru.yandex.practicum.filmorate.dao.UserRepository;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.exception.DateException;
 import ru.yandex.practicum.filmorate.exception.EmptyStringException;
 import ru.yandex.practicum.filmorate.exception.NotFoundException;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 
@@ -28,16 +26,19 @@ public class FilmService {
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
     private final GenreRepository genreRepository;
+    private final DirectorRepository directorRepository;
 
     final LocalDate minDate = LocalDate.of(1895, 12, 28);
 
     @Autowired
     public FilmService(FilmRepository filmRepository, UserRepository userRepository,
-                       MpaRepository mpaRepository, GenreRepository genreRepository) {
+                       MpaRepository mpaRepository, GenreRepository genreRepository,
+                       DirectorRepository directorRepository) {
         this.filmRepository = filmRepository;
         this.userRepository = userRepository;
         this.mpaRepository = mpaRepository;
         this.genreRepository = genreRepository;
+        this.directorRepository = directorRepository;
     }
 
     public Collection<Film> findAll() {
@@ -119,6 +120,22 @@ public class FilmService {
         return filmRepository.getCommon(userId, friendId);
     }
 
+    public Collection<Film> getByDirector(Long directorId, String sortBy) {
+        switch (sortBy == null ? "1" : sortBy) {
+            case "likes":
+                sortBy = "like_count DESC, f.FILM_ID ASC";
+                break;
+            case "year":
+                sortBy = "EXTRACT(YEAR FROM f.RELEASE_DATE) ASC, f.FILM_ID ASC";
+                break;
+            default:
+                throw new NotFoundException("sortBy must be 'year' or 'likes'");
+        }
+        directorRepository.findById(directorId)
+                .orElseThrow(() -> new NotFoundException("Режиссёр с id=" + directorId + " не найден"));
+        return filmRepository.getByDirector(directorId, sortBy);
+    }
+
     private void validateFilm(Film film) {
         if (film.getReleaseDate().isBefore(minDate)) {
             throw new DateException("Дата релиза не может быть раньше " + minDate);
@@ -142,6 +159,13 @@ public class FilmService {
                         .filter(id -> !foundIds.contains(id))
                         .toList();
                 throw new NotFoundException("Жанры не найдены: " + missing);
+            }
+        }
+        if (film.getDirectors() != null) {
+            for (Director d : film.getDirectors()) {
+                if (directorRepository.findById(d.getId()).isEmpty()) {
+                    throw new NotFoundException("Режиссёр с id=" + d.getId() + " не найден");
+                }
             }
         }
     }

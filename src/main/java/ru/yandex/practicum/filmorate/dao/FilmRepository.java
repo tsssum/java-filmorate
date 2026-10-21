@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 
@@ -27,4 +28,8 @@ public interface FilmRepository {
     Set<GENRE> findGenresByFilmId(Long filmId);
 
     Collection<Film> getCommon(Long userId, Long friendId);
+
+    Set<Director> findDirectorsByFilmId(Long filmId);
+
+    Collection<Film> getByDirector(Long directorId, String sortBy);
 }

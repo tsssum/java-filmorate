@@ -20,26 +20,28 @@ public class Film {
     Long id;
     @NotBlank
     String name;
-    @Size(max = 200)
-    String description;
     @NotNull
     LocalDate releaseDate;
-    Set<GENRE> genres = new LinkedHashSet<>();
-    MPA mpa;
+    @Size(max = 200)
+    String description;
     @Positive
     int duration;
+    MPA mpa;
+    Set<GENRE> genres = new LinkedHashSet<>();
+    Set<Director> directors = new LinkedHashSet<>();
     Set<Long> likes = new HashSet<>();
 
     @JsonIgnore
-    public Film(long filmId, String title, String description, LocalDate releaseDate,
-                Set genres, MPA mpa, String duration) {
+    public Film(long filmId, String title, String description, LocalDate releaseDate, Set<Director> directors,
+                Set<GENRE> genres, MPA mpa, String duration) {
         this.id = filmId;
         this.name = title;
-        this.description = description;
         this.releaseDate = releaseDate;
-        this.genres = genres;
-        this.mpa = mpa;
+        this.description = description;
         this.duration = Integer.parseInt(duration);
+        this.mpa = mpa;
+        this.genres = genres;
+        this.directors = directors;
     }
 
 }

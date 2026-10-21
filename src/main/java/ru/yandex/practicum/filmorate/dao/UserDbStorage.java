@@ -1,8 +1,6 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
@@ -21,7 +19,6 @@ import java.util.Optional;
 @Repository
 @RequiredArgsConstructor
 public class UserDbStorage implements UserRepository {
-    private static final Logger log = LoggerFactory.getLogger(UserDbStorage.class);
     private final NamedParameterJdbcTemplate jdbcTemplate;
     private final FilmRepository filmRepository;
 
@@ -168,6 +165,7 @@ public class UserDbStorage implements UserRepository {
                         rs.getString("DESCRIPTION"),
                         rs.getDate("RELEASE_DATE").toLocalDate(),
                         new LinkedHashSet<>(),
+                        new LinkedHashSet<>(),
                         rs.getObject("MPA_id", Integer.class) == null
                                 ? null : MPA.fromId(rs.getInt("MPA_id")),
                         rs.getString("DURATION")
@@ -176,6 +174,9 @@ public class UserDbStorage implements UserRepository {
 
         films.forEach(film ->
                 film.setGenres(filmRepository.findGenresByFilmId(film.getId()))
+        );
+        films.forEach(film ->
+                film.setDirectors(filmRepository.findDirectorsByFilmId(film.getId()))
         );
 
         return films;

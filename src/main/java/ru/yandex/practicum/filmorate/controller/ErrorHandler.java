@@ -1,5 +1,6 @@
 package ru.yandex.practicum.filmorate.controller;
 
+import jakarta.servlet.http.HttpServletResponse;
 import jakarta.validation.ValidationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.converter.HttpMessageNotReadableException;
@@ -25,15 +26,17 @@ public class ErrorHandler {
     }
 
     @ExceptionHandler
-    @ResponseStatus(HttpStatus.NOT_FOUND)
-    public ErrorResponse handleNotReadable(final HttpMessageNotReadableException e) {
+    public ErrorResponse handleNotReadable(final HttpMessageNotReadableException e,
+                                           final HttpServletResponse response) {
         Throwable cause = e.getCause();
         while (cause != null) {
             if (cause instanceof NotFoundException nfe) {
+                response.setStatus(HttpStatus.NOT_FOUND.value());
                 return new ErrorResponse(nfe.getMessage());
             }
             cause = cause.getCause();
         }
+        response.setStatus(HttpStatus.BAD_REQUEST.value());
         return new ErrorResponse("Некорректный JSON: " + e.getMessage());
     }
 
