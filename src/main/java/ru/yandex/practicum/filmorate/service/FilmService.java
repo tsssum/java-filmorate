@@ -1,6 +1,8 @@
 package ru.yandex.practicum.filmorate.service;
 
 import lombok.extern.slf4j.Slf4j;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.yandex.practicum.filmorate.dao.FilmRepository;
@@ -20,6 +22,8 @@ import java.util.stream.Collectors;
 @Slf4j
 @Service
 public class FilmService {
+    private static final Logger logger = LoggerFactory.getLogger(FilmService.class);
+
     private final FilmRepository filmRepository;
     private final UserRepository userRepository;
     private final MpaRepository mpaRepository;
@@ -42,37 +46,44 @@ public class FilmService {
 
     public Optional<Film> create(Film film) {
         validateFilm(film);
+        logger.trace("Creating film {}", film);
 
         if (film.getLikes() == null) {
             film.setLikes(new HashSet<>());
         }
-
+        logger.trace("Film {} successfully created", film);
         return filmRepository.create(film);
     }
 
     public Optional<Film> update(Film newFilm) {
         if (newFilm.getId() == null) {
+            logger.error("New film id is null");
             throw new EmptyStringException("Id должен быть указан");
         }
         if (filmRepository.findById(newFilm.getId()).isEmpty()) {
+            logger.error("Film with id {} not found", newFilm.getId());
             throw new NotFoundException("Фильм с id = " + newFilm.getId() + " не найден");
         }
 
         validateFilm(newFilm);
-
+        logger.trace("Updating film {}", newFilm);
         return filmRepository.update(newFilm);
     }
 
     public void delete(Long filmId) {
         if (filmRepository.findById(filmId).isEmpty()) {
+            logger.error("Film with id {} not found", filmId);
             throw new NotFoundException("Фильм с id = " + filmId + " не найден");
         }
+        logger.trace("Deleting film {}", filmId);
         filmRepository.delete(filmId);
     }
 
     public Optional<Film> findById(Long id) {
         Optional<Film> film = filmRepository.findById(id);
+        logger.trace("Searching for film with id {}", id);
         if (film.isEmpty()) {
+            logger.error("Film with id {} not found", id);
             throw new NotFoundException("Film with id " + id + " not found");
         } else return film;
     }
@@ -95,9 +106,9 @@ public class FilmService {
         filmRepository.removeLike(userId, filmId);
     }
 
-    public List<Film> getPopular(int count) {
+    public Collection<Film> getPopular(int count, Long genreId, Long year) {
         if (count <= 0) throw new IllegalArgumentException("count must be greater than 0");
-        return filmRepository.getPopular(count);
+        return filmRepository.getPopular(count, genreId, year);
     }
 
     public Collection<Film> getCommon(Long userId, Long friendId) {
