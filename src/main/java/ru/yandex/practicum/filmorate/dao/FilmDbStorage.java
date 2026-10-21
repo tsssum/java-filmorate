@@ -45,7 +45,7 @@ public class FilmDbStorage implements FilmRepository {
                     return f;
                 })
                 .map(f -> {
-                    f.setDirector(new LinkedHashSet<>(findDirectorsByFilmId(f.getId())));
+                    f.setDirectors(new LinkedHashSet<>(findDirectorsByFilmId(f.getId())));
                     return f;
                 });
     }
@@ -302,14 +302,14 @@ public class FilmDbStorage implements FilmRepository {
                 "DELETE FROM FILM_DIRECTORS WHERE FILM_ID = :id",
                 Map.of("id", film.getId()));
 
-        if (film.getDirector() == null || film.getDirector().isEmpty()) {
+        if (film.getDirectors() == null || film.getDirectors().isEmpty()) {
             return;
         }
 
         String sql = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) " +
                 "VALUES (:film_id, :director_id)";
 
-        SqlParameterSource[] batch = film.getDirector().stream()
+        SqlParameterSource[] batch = film.getDirectors().stream()
                 .map(d -> new MapSqlParameterSource()
                         .addValue("film_id", film.getId())
                         .addValue("director_id", d.getId()))
@@ -329,7 +329,7 @@ public class FilmDbStorage implements FilmRepository {
                 ))
         );
         Map<Long, Set<Director>> directorsByFilm = findDirectorsByFilmIds(filmIds);
-        films.forEach(f -> f.setDirector(
+        films.forEach(f -> f.setDirectors(
                 new LinkedHashSet<>(directorsByFilm.getOrDefault(f.getId(), Set.of()))));
     }
 }

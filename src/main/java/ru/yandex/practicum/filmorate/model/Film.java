@@ -28,7 +28,7 @@ public class Film {
     int duration;
     MPA mpa;
     Set<GENRE> genres = new LinkedHashSet<>();
-    Set<Director> director = new LinkedHashSet<>();
+    Set<Director> directors = new LinkedHashSet<>();
     Set<Long> likes = new HashSet<>();
 
     @JsonIgnore
@@ -41,7 +41,7 @@ public class Film {
         this.duration = Integer.parseInt(duration);
         this.mpa = mpa;
         this.genres = genres;
-        this.director = directors;
+        this.directors = directors;
     }
 
 }

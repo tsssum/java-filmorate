@@ -176,7 +176,7 @@ public class UserDbStorage implements UserRepository {
                 film.setGenres(filmRepository.findGenresByFilmId(film.getId()))
         );
         films.forEach(film ->
-                film.setDirector(filmRepository.findDirectorsByFilmId(film.getId()))
+                film.setDirectors(filmRepository.findDirectorsByFilmId(film.getId()))
         );
 
         return films;

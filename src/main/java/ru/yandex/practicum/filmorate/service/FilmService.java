@@ -161,8 +161,8 @@ public class FilmService {
                 throw new NotFoundException("Жанры не найдены: " + missing);
             }
         }
-        if (film.getDirector() != null) {
-            for (Director d : film.getDirector()) {
+        if (film.getDirectors() != null) {
+            for (Director d : film.getDirectors()) {
                 if (directorRepository.findById(d.getId()).isEmpty()) {
                     throw new NotFoundException("Режиссёр с id=" + d.getId() + " не найден");
                 }
