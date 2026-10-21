@@ -103,7 +103,7 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
-    public Collection<Film> getPopular(int count, Long genreId, Long year) {
+    public Collection<Film> getPopular(int count, Long genreId, Integer year) {
         String sql = """
                 SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE, f.DURATION, f.MPA_id
                 FROM FILMS f

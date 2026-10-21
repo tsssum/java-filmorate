@@ -18,7 +18,7 @@ public interface FilmRepository {
 
     void removeLike(long userId, long filmId);
 
-    Collection<Film> getPopular(int count, Long genreId, Long yeara);
+    Collection<Film> getPopular(int count, Long genreId, Integer yeara);
 
     void delete(Long filmId);
 

@@ -106,7 +106,7 @@ public class FilmService {
         filmRepository.removeLike(userId, filmId);
     }
 
-    public Collection<Film> getPopular(int count, Long genreId, Long year) {
+    public Collection<Film> getPopular(int count, Long genreId, Integer year) {
         if (count <= 0) throw new IllegalArgumentException("count must be greater than 0");
         return filmRepository.getPopular(count, genreId, year);
     }
