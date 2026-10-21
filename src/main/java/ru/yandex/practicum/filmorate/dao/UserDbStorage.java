@@ -1,22 +1,29 @@
 package ru.yandex.practicum.filmorate.dao;
 
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.jdbc.core.namedparam.MapSqlParameterSource;
 import org.springframework.jdbc.core.namedparam.NamedParameterJdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.MPA;
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.Collection;
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Optional;
 
 @Repository
 @RequiredArgsConstructor
 public class UserDbStorage implements UserRepository {
+    private static final Logger log = LoggerFactory.getLogger(UserDbStorage.class);
     private final NamedParameterJdbcTemplate jdbcTemplate;
+    private final FilmRepository filmRepository;
 
     private static final RowMapper<User> userRowMapper = (rs, rowNum) -> new User(
             rs.getLong("USER_ID"),
@@ -121,5 +128,56 @@ public class UserDbStorage implements UserRepository {
                 "birthday", user.getBirthday()
         ));
         return Optional.of(user);
+    }
+
+    @Override
+    public Collection<Film> getRecommendations(long userId) {
+        String sql = """
+                SELECT DISTINCT f.FILM_ID, f.TITLE, f.DESCRIPTION,
+                                f.RELEASE_DATE, f.DURATION, f.MPA_id
+                FROM FILMS f
+                JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID
+                WHERE l.User_id IN (
+                    SELECT l2.User_id
+                    FROM USERS_FILMS_LIKES l1
+                    JOIN USERS_FILMS_LIKES l2 ON l2.Film_id = l1.Film_id
+                    WHERE l1.User_id = :userId AND l2.User_id <> :userId
+                    GROUP BY l2.User_id
+                    HAVING COUNT(*) = (
+                        SELECT MAX(cnt) FROM (
+                            SELECT COUNT(*) AS cnt
+                            FROM USERS_FILMS_LIKES a
+                            JOIN USERS_FILMS_LIKES b ON b.Film_id = a.Film_id
+                            WHERE a.User_id = :userId AND b.User_id <> :userId
+                            GROUP BY b.User_id
+                        ) sub
+                    )
+                )
+                AND NOT EXISTS (
+                    SELECT 1 FROM USERS_FILMS_LIKES mine
+                    WHERE mine.Film_id = f.FILM_ID AND mine.User_id = :userId
+                )
+                ORDER BY f.FILM_ID
+                """;
+        Collection<Film> films = jdbcTemplate.query(
+                sql,
+                Map.of("userId", userId),
+                (rs, rowNum) -> new Film(
+                        rs.getLong("FILM_ID"),
+                        rs.getString("TITLE"),
+                        rs.getString("DESCRIPTION"),
+                        rs.getDate("RELEASE_DATE").toLocalDate(),
+                        new LinkedHashSet<>(),
+                        rs.getObject("MPA_id", Integer.class) == null
+                                ? null : MPA.fromId(rs.getInt("MPA_id")),
+                        rs.getString("DURATION")
+                )
+        );
+
+        films.forEach(film ->
+                film.setGenres(filmRepository.findGenresByFilmId(film.getId()))
+        );
+
+        return films;
     }
 }

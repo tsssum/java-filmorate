@@ -88,7 +88,7 @@ public class FilmService {
         } else return film;
     }
 
-    public void setLike(Long filmId, Long userId) {
+    public void setLike(Long userId, Long filmId) {
         filmRepository.findById(filmId)
                 .orElseThrow(() -> new NotFoundException("Film with id " + filmId + " not found"));
         userRepository.findById(userId)
