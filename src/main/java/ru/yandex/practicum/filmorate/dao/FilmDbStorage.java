@@ -8,6 +8,7 @@ import org.springframework.jdbc.core.namedparam.SqlParameterSource;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
 import org.springframework.jdbc.support.KeyHolder;
 import org.springframework.stereotype.Repository;
+import ru.yandex.practicum.filmorate.model.Director;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 import ru.yandex.practicum.filmorate.model.MPA;
@@ -24,7 +25,8 @@ public class FilmDbStorage implements FilmRepository {
             rs.getString("TITLE"),
             rs.getString("DESCRIPTION"),
             rs.getDate("RELEASE_DATE").toLocalDate(),
-            new LinkedHashSet(),
+            new LinkedHashSet<>(),
+            new LinkedHashSet<>(),
             rs.getObject("MPA_id", Integer.class) == null
                     ? null
                     : MPA.fromId(rs.getInt("MPA_id")),
@@ -41,6 +43,10 @@ public class FilmDbStorage implements FilmRepository {
                 .map(f -> {
                     f.setGenres(new LinkedHashSet<>(findGenresByFilmId(f.getId())));
                     return f;
+                })
+                .map(f -> {
+                    f.setDirector(new LinkedHashSet<>(findDirectorsByFilmId(f.getId())));
+                    return f;
                 });
     }
 
@@ -54,19 +60,11 @@ public class FilmDbStorage implements FilmRepository {
                 ORDER BY f.FILM_ID
                 """;
 
-        List<Film> films = jdbcTemplate.query(sql, filmRowMapper);
-        List<Long> filmIds = films.stream()
-                .map(Film::getId)
-                .toList();
-
-        Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
-        films.forEach(film ->
-                film.setGenres(new LinkedHashSet<>(
-                        genresByFilm.getOrDefault(film.getId(), Set.of())
-                ))
-        );
+        Collection<Film> films = jdbcTemplate.query(sql, filmRowMapper);
+        setGenresDirectors(films);
         return films;
     }
+
 
     @Override
     public Optional<Film> create(Film film) {
@@ -83,6 +81,7 @@ public class FilmDbStorage implements FilmRepository {
                 keyHolder);
         film.setId(keyHolder.getKey().longValue());
         saveGenres(film);
+        saveDirectors(film);
         return findById(film.getId()); // это из-за порядка жанров истг
     }
 
@@ -125,18 +124,68 @@ public class FilmDbStorage implements FilmRepository {
                         .addValue("genreId", genreId)
                         .addValue("year", year),
                 filmRowMapper);
-
-        Collection<Long> filmIds = films.stream()
-                .map(Film::getId)
-                .toList();
-
-        Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
-        films.forEach(film ->
-                film.setGenres(new LinkedHashSet<>(
-                        genresByFilm.getOrDefault(film.getId(), Set.of())
-                ))
-        );
+        setGenresDirectors(films);
         return films;
+    }
+
+
+    @Override
+    public void delete(Long filmId) {
+        String sql = "DELETE FROM FILMS WHERE FILM_ID = :id";
+        jdbcTemplate.update(sql, Map.of("id", filmId));
+    }
+
+    @Override
+    public Optional<Film> update(Film film) {
+        String sql = "UPDATE FILMS SET TITLE = :title, DESCRIPTION = :description, " +
+                "RELEASE_DATE = :release_date, MPA_id = :mpa_id, DURATION = :duration " +
+                "WHERE FILM_ID = :id";
+        jdbcTemplate.update(sql, new MapSqlParameterSource()
+                .addValue("id", film.getId())
+                .addValue("title", film.getName())
+                .addValue("description", film.getDescription())
+                .addValue("release_date", film.getReleaseDate())
+                .addValue("mpa_id", film.getMpa() != null ? film.getMpa().getId() : null)
+                .addValue("duration", film.getDuration()));
+        saveGenres(film);
+        saveDirectors(film);
+        return findById(film.getId());
+    }
+
+    @Override
+    public Collection<Film> getByDirector(Long directorId, String sortBy) {
+        String sql = """
+                SELECT f.FILM_ID, f.TITLE, f.DESCRIPTION, f.RELEASE_DATE,
+                       f.DURATION, f.MPA_id, COUNT(l.User_id) AS like_count
+                FROM FILMS f
+                JOIN FILM_DIRECTORS fd ON fd.FILM_ID = f.FILM_ID
+                LEFT JOIN USERS_FILMS_LIKES l ON l.Film_id = f.FILM_ID
+                WHERE fd.DIRECTOR_ID = :directorId
+                GROUP BY f.FILM_ID, f.TITLE, f.DESCRIPTION,
+                         f.RELEASE_DATE, f.DURATION, f.MPA_id
+                ORDER BY\s""" + sortBy;
+
+        Collection<Film> films = jdbcTemplate.query(
+                sql, Map.of("directorId", directorId), filmRowMapper);
+        setGenresDirectors(films);
+        return films;
+    }
+
+    @Override
+    public Set<GENRE> findGenresByFilmId(Long filmId) {
+        String sql = """
+                SELECT g.Genre_id
+                FROM FILM_GENRES fg
+                JOIN GENRE g ON g.Genre_id = fg.Genre_id
+                WHERE fg.FILM_ID = :filmId
+                ORDER BY g.Genre_id
+                """;
+
+        return new LinkedHashSet<>(jdbcTemplate.query(
+                sql,
+                Map.of("filmId", filmId),
+                (rs, rowNum) -> GENRE.fromId(rs.getInt("Genre_id"))
+        ));
     }
 
     private Map<Long, Set<GENRE>> findGenresByFilmIds(Collection<Long> filmIds) {
@@ -167,42 +216,41 @@ public class FilmDbStorage implements FilmRepository {
     }
 
     @Override
-    public void delete(Long filmId) {
-        String sql = "DELETE FROM FILMS WHERE FILM_ID = :id";
-        jdbcTemplate.update(sql, Map.of("id", filmId));
-    }
-
-    @Override
-    public Optional<Film> update(Film film) {
-        String sql = "UPDATE FILMS SET TITLE = :title, DESCRIPTION = :description, " +
-                "RELEASE_DATE = :release_date, MPA_id = :mpa_id, DURATION = :duration " +
-                "WHERE FILM_ID = :id";
-        jdbcTemplate.update(sql, new MapSqlParameterSource()
-                .addValue("id", film.getId())
-                .addValue("title", film.getName())
-                .addValue("description", film.getDescription())
-                .addValue("release_date", film.getReleaseDate())
-                .addValue("mpa_id", film.getMpa() != null ? film.getMpa().getId() : null)
-                .addValue("duration", film.getDuration()));
-        saveGenres(film);
-        return findById(film.getId());
-    }
-
-    @Override
-    public Set<GENRE> findGenresByFilmId(Long filmId) {
+    public Set<Director> findDirectorsByFilmId(Long filmId) {
         String sql = """
-                SELECT g.Genre_id
-                FROM FILM_GENRES fg
-                JOIN GENRE g ON g.Genre_id = fg.Genre_id
-                WHERE fg.FILM_ID = :filmId
-                ORDER BY g.Genre_id
+                SELECT d.DIRECTOR_ID, d.DIRECTOR_NAME
+                FROM FILM_DIRECTORS fd
+                JOIN DIRECTORS d ON d.DIRECTOR_ID = fd.DIRECTOR_ID
+                WHERE fd.FILM_ID = :filmId
+                ORDER BY d.DIRECTOR_ID
+                """;
+        return new LinkedHashSet<>(jdbcTemplate.query(
+                sql, Map.of("filmId", filmId),
+                (rs, n) -> new Director(rs.getLong("DIRECTOR_ID"),
+                        rs.getString("DIRECTOR_NAME"))));
+    }
+
+    private Map<Long, Set<Director>> findDirectorsByFilmIds(Collection<Long> filmIds) {
+        if (filmIds == null || filmIds.isEmpty()) return Map.of();
+
+        String sql = """
+                SELECT fd.FILM_ID, d.DIRECTOR_ID, d.DIRECTOR_NAME
+                FROM FILM_DIRECTORS fd
+                JOIN DIRECTORS d ON d.DIRECTOR_ID = fd.DIRECTOR_ID
+                WHERE fd.FILM_ID IN (:filmIds)
+                ORDER BY fd.FILM_ID, d.DIRECTOR_ID
                 """;
 
-        return new LinkedHashSet<>(jdbcTemplate.query(
-                sql,
-                Map.of("filmId", filmId),
-                (rs, rowNum) -> GENRE.fromId(rs.getInt("Genre_id"))
-        ));
+        return jdbcTemplate.query(sql, Map.of("filmIds", filmIds), rs -> {
+            Map<Long, Set<Director>> result = new HashMap<>();
+            while (rs.next()) {
+                long filmId = rs.getLong("FILM_ID");
+                result.computeIfAbsent(filmId, k -> new LinkedHashSet<>())
+                        .add(new Director(rs.getLong("DIRECTOR_ID"),
+                                rs.getString("DIRECTOR_NAME")));
+            }
+            return result;
+        });
     }
 
     @Override
@@ -223,16 +271,8 @@ public class FilmDbStorage implements FilmRepository {
                 sql,
                 Map.of("userId", userId, "friendId", friendId),
                 filmRowMapper);
-        List<Long> filmIds = films.stream()
-                .map(Film::getId)
-                .toList();
 
-        Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
-        films.forEach(film ->
-                film.setGenres(new LinkedHashSet<>(
-                        genresByFilm.getOrDefault(film.getId(), Set.of())
-                ))
-        );
+        setGenresDirectors(films);
         return films;
     }
 
@@ -255,5 +295,41 @@ public class FilmDbStorage implements FilmRepository {
                 .toArray(SqlParameterSource[]::new);
 
         jdbcTemplate.batchUpdate(sql, batch);
+    }
+
+    private void saveDirectors(Film film) {
+        jdbcTemplate.update(
+                "DELETE FROM FILM_DIRECTORS WHERE FILM_ID = :id",
+                Map.of("id", film.getId()));
+
+        if (film.getDirector() == null || film.getDirector().isEmpty()) {
+            return;
+        }
+
+        String sql = "INSERT INTO FILM_DIRECTORS (FILM_ID, DIRECTOR_ID) " +
+                "VALUES (:film_id, :director_id)";
+
+        SqlParameterSource[] batch = film.getDirector().stream()
+                .map(d -> new MapSqlParameterSource()
+                        .addValue("film_id", film.getId())
+                        .addValue("director_id", d.getId()))
+                .toArray(SqlParameterSource[]::new);
+
+        jdbcTemplate.batchUpdate(sql, batch);
+    }
+
+    private void setGenresDirectors(Collection<Film> films) {
+        List<Long> filmIds = films.stream()
+                .map(Film::getId)
+                .toList();
+        Map<Long, Set<GENRE>> genresByFilm = findGenresByFilmIds(filmIds);
+        films.forEach(film ->
+                film.setGenres(new LinkedHashSet<>(
+                        genresByFilm.getOrDefault(film.getId(), Set.of())
+                ))
+        );
+        Map<Long, Set<Director>> directorsByFilm = findDirectorsByFilmIds(filmIds);
+        films.forEach(f -> f.setDirector(
+                new LinkedHashSet<>(directorsByFilm.getOrDefault(f.getId(), Set.of()))));
     }
 }

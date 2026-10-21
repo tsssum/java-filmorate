@@ -6,10 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.jdbc.AutoConfigureTestDatabase;
 import org.springframework.boot.test.autoconfigure.jdbc.JdbcTest;
 import org.springframework.context.annotation.Import;
-import ru.yandex.practicum.filmorate.dao.FilmDbStorage;
-import ru.yandex.practicum.filmorate.dao.GenreDbStorage;
-import ru.yandex.practicum.filmorate.dao.MpaDbStorage;
-import ru.yandex.practicum.filmorate.dao.UserDbStorage;
+import ru.yandex.practicum.filmorate.dao.*;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.GENRE;
 import ru.yandex.practicum.filmorate.model.MPA;
@@ -25,13 +22,14 @@ import static org.assertj.core.api.Assertions.assertThat;
 @JdbcTest
 @AutoConfigureTestDatabase
 @RequiredArgsConstructor(onConstructor_ = @Autowired)
-@Import({UserDbStorage.class, FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class})
+@Import({UserDbStorage.class, FilmDbStorage.class, GenreDbStorage.class, MpaDbStorage.class, DirectorDbStorage.class})
 class FilmorateApplicationTests {
 
     private final UserDbStorage userStorage;
     private final FilmDbStorage filmStorage;
     private final GenreDbStorage genreDbStorage;
     private final MpaDbStorage mpaDbStorage;
+    private final DirectorDbStorage directorDbStorage;
 
     private User newUser(String login) {
         return new User(0, login + "@mail.ru", login, login, LocalDate.of(1990, 1, 1));
@@ -39,7 +37,7 @@ class FilmorateApplicationTests {
 
     private Film newFilm(String title) {
         return new Film(0, title, "desc", LocalDate.of(2000, 1, 1),
-                new HashSet<>(Set.of(GENRE.DRAMA)), MPA.G, "120");
+                new HashSet<>(Set.of()), new HashSet<>(Set.of(GENRE.DRAMA)), MPA.G, "120");
     }
 
     @Test
